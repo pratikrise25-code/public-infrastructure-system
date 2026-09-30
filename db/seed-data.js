@@ -4,6 +4,31 @@ function seedDatabase() {
   // Check if already seeded
   const checkStmt = db.prepare('SELECT COUNT(*) as count FROM users');
   const userCount = checkStmt.get().count;
+    // Migration: Ensure Priya Nair is purged from any existing or persisted database
+  try {
+    const hasPriya = db.prepare("SELECT COUNT(*) as c FROM users WHERE name LIKE '%Priya%'").get()?.c;
+    if (hasPriya > 0) {
+      db.prepare(`
+        INSERT OR IGNORE INTO users (id, name, email, role, phone, department)
+        VALUES (10, 'Ward Resident', 'resident@nagardrishti.gov', 'citizen', '+91 98765 11111', 'Civic Survey')
+      `).run();
+      db.prepare(`
+        UPDATE complaints 
+        SET user_id = 10, citizen_name = 'Ward Resident', citizen_email = 'resident@nagardrishti.gov' 
+        WHERE user_id = 4 OR citizen_name LIKE '%Priya%' OR citizen_email LIKE '%priya%'
+      `).run();
+      db.prepare(`
+        UPDATE users 
+        SET name = 'Public Citizen', email = 'citizen@nagardrishti.gov', role = 'citizen', phone = '+91 98765 00000', department = 'Public Citizen' 
+        WHERE id = 4 OR name LIKE '%Priya%'
+      `).run();
+      db.prepare(`DELETE FROM users WHERE name LIKE '%Priya%' AND id != 4`).run();
+      console.log('Automated migration: completely removed Priya Nair and initialized Public Citizen with 0 reports.');
+    }
+  } catch (mErr) {
+    console.warn('Migration note:', mErr.message);
+  }
+
   if (userCount > 0) {
     console.log('Database already seeded. Skipping seed process.');
     return;
