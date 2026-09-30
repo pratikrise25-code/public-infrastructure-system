@@ -2,6 +2,7 @@
  * NagarDrishti AI — AI Maintenance Hotspot Map Controller
  * Citizen View: Shows ONLY the logged-in citizen's uploaded complaints ("My Map").
  * City/Public View: Shows all city complaints, recurring defect clusters, and risk zones.
+ * Free OpenStreetMap tiles with zero API keys required.
  */
 const HotspotMap = {
   citizenMap: null,
@@ -17,7 +18,11 @@ const HotspotMap = {
   activeFilter: 'ALL',
 
   init() {
-    // If map elements are present, initialize when activated
+    // If citizen map element is visible on load, initialize
+    const mapEl = document.getElementById('infrastructure-map');
+    if (mapEl && mapEl.offsetParent !== null) {
+      this.initCitizenMap();
+    }
   },
 
   /**
@@ -67,9 +72,9 @@ const HotspotMap = {
         scrollWheelZoom: true
       });
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      // 100% Free OpenStreetMap Standard Tiles (Zero API Key Required)
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        subdomains: 'abcd',
         maxZoom: 19
       }).addTo(this.citizenMap);
 
@@ -258,9 +263,9 @@ const HotspotMap = {
         scrollWheelZoom: true
       });
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap contributors',
-        subdomains: 'abcd',
+      // 100% Free OpenStreetMap Standard Tiles (Zero API Key Required)
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19
       }).addTo(this.cityMap);
 
