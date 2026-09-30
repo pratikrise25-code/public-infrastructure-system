@@ -1,7 +1,7 @@
 {
   "name": "public-infrastructure-system",
   "version": "1.0.0",
-  "description": "AI-Powered Public Infrastructure Asset Monitoring System",
+  "description": "NagarDrishti AI — AI-Powered Vision for Better Cities",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

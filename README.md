@@ -1,4 +1,4 @@
-# AI-Powered Public Infrastructure Asset Monitoring System
+# NagarDrishti AI — AI-Powered Vision for Better Cities
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/pratikrise25-code/public-infrastructure-system)
 

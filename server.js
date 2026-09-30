@@ -873,7 +873,7 @@ app.get('/api/admin/summary', (req, res) => {
 // Start Server
 app.listen(PORT, () => {
   console.log(`=======================================================`);
-  console.log(`AI-Powered Public Infrastructure Monitoring System`);
+  console.log(`NagarDrishti AI — AI-Powered Vision for Better Cities`);
   console.log(`Server listening at http://localhost:${PORT}`);
   console.log(`Environment AI Status: ${process.env.GEMINI_API_KEY ? 'Active (Gemini Vision API)' : 'Demo Provider Mode (Set GEMINI_API_KEY for Live API)'}`);
   console.log(`=======================================================`);
