@@ -1,0 +1,27 @@
+{
+  "name": "public-infrastructure-system",
+  "version": "1.0.0",
+  "description": "AI-Powered Public Infrastructure Asset Monitoring System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/priority-engine.test.js",
+    "workflow-test": "node test-workflow.js"
+  },
+  "keywords": [
+    "infrastructure",
+    "ai-vision",
+    "priority-engine",
+    "hotspots"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.2.1",
+    "multer": "^2.4.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
