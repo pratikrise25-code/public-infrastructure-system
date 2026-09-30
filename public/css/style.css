@@ -1805,3 +1805,8 @@ body.admin-mode .citizen-only-view {
 body.admin-mode .admin-only-view {
   display: block;
 }
+
+/* AI Hotspot Map Filters */
+.btn-hotspot-filter { background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-muted); padding: 5px 12px; border-radius: 6px; font-size: 0.76rem; font-weight: 500; cursor: pointer; transition: all 0.2s ease; }
+.btn-hotspot-filter:hover { background: var(--bg-card); color: var(--text-main); border-color: var(--accent-cyan); }
+.btn-hotspot-filter.active { background: rgba(56, 189, 248, 0.18); border-color: var(--accent-cyan); color: #38bdf8; font-weight: 700; }

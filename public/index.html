@@ -101,8 +101,8 @@
         <button class="citizen-nav-btn admin-only-tab" data-tab="all-complaints-tab" id="nav-all-complaints-btn" role="tab" style="display: none;">
           <span>📋</span> All Complaints Pipeline
         </button>
-        <button class="citizen-nav-btn admin-only-tab" data-tab="city-map-tab" id="nav-city-map-btn" role="tab" style="display: none;">
-          <span>🗺️</span> City Hotspot Map
+        <button class="citizen-nav-btn" data-tab="city-map-tab" id="nav-city-map-btn" role="tab">
+          <span>🔥</span> AI Hotspot Map
         </button>
         <button class="citizen-nav-btn admin-only-tab" data-tab="assets-tab" id="nav-assets-btn" role="tab" style="display: none;">
           <span>🏗️</span> Assets
@@ -176,6 +176,17 @@
           <div class="stat-header">
             <span class="stat-title">My Map Locations</span>
             <div class="stat-icon cyan"><span>🗺️</span></div>
+          </div>
+
+          <div class="stat-card" style="cursor: pointer; border-left: 3px solid #f59e0b;" onclick="App.switchTab('city-map-tab')">
+            <div class="stat-header">
+              <span class="stat-title">AI Maintenance Hotspots</span>
+              <div class="stat-icon orange"><span>🔥</span></div>
+            </div>
+            <div class="stat-value" id="home-stat-hotspot-count">4 Zones</div>
+            <div class="stat-footer">
+              <span class="stat-meta">Explore city defect clusters →</span>
+            </div>
           </div>
           <div class="stat-value" id="home-stat-map-count">0</div>
           <div class="stat-footer">
@@ -410,21 +421,31 @@
          ========================================================================= -->
     <section class="tab-pane" id="my-map-tab" role="tabpanel">
       <div class="my-map-header-bar">
-        <div>
-          <h2 class="section-title">
-            <span>🗺️</span> My Infrastructure Map
-          </h2>
-          <p class="section-desc">
-            Showing only the complaints you have reported. Other citizens' complaints are kept private.
-          </p>
-        </div>
+          <div>
+            <h2 class="section-title">
+              <span>🗺️</span> My Infrastructure Map
+            </h2>
+            <p class="section-desc">
+              Showing only complaints reported by you. Other citizens' complaints are kept private.
+            </p>
+          </div>
 
-        <!-- Prominent My Reports Counter Badge -->
-        <div class="my-reports-counter-badge" id="my-map-counter-badge">
-          <span>📍</span>
-          <span>My Reports: <strong id="my-map-reports-count">0</strong></span>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <button type="button" class="btn-action-sm" id="btn-toggle-my-map-hotspots" onclick="HotspotMap.toggleCitizenHotspotOverlay()" style="background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; color: #f59e0b; font-weight: 600;">
+              <span>🔥</span> Overlay AI Hotspot Clusters
+            </button>
+            <button type="button" class="btn-action-sm" onclick="App.switchTab('city-map-tab')" style="background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-main); font-weight: 600;">
+              <span>🗺️</span> View Full City Map →
+            </button>
+            <div class="my-reports-counter-badge" id="my-map-counter-badge">
+              <span>📋</span>
+              <span>My Reports: <strong id="my-map-reports-count">0</strong></span>
+            </div>
+          </div>
         </div>
-      </div>
+        <div id="my-map-empty-banner" style="display: none; padding: 12px 16px; background: rgba(56, 189, 248, 0.08); border-radius: 6px; margin-bottom: 12px; font-size: 0.84rem; color: var(--text-muted); border-left: 3px solid var(--accent-cyan);">
+          ℹ️ <strong>My Reports: 0.</strong> You haven't reported any infrastructure defects yet. Your personal complaints will appear here when submitted. Click <strong><a href="javascript:void(0)" onclick="App.switchTab('city-map-tab')" style="color: var(--accent-cyan); font-weight: 600;">AI Hotspot Map</a></strong> to explore city-wide clusters!
+        </div>
 
       <!-- Map Card -->
       <div class="card" style="padding: 0; overflow: hidden; position: relative;">
@@ -679,21 +700,55 @@
          TAB 8: CITY-WIDE HOTSPOT MAP (ADMINISTRATOR ONLY)
          ========================================================================= -->
     <section class="tab-pane" id="city-map-tab" role="tabpanel">
-      <div class="section-header">
-        <div>
-          <h2 class="section-title">
-            <span>🗺️</span> City-Wide Maintenance Hotspot Map
-          </h2>
-          <p class="section-desc">
-            Complete geographic view of all municipal complaints, recurring failure clusters, and preventive zones across all wards.
-          </p>
-        </div>
-      </div>
+        <div class="section-header" style="flex-direction: column; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <h2 class="section-title">
+                <span>🔥</span> NagarDrishti AI — Maintenance Hotspot Map
+              </h2>
+              <p class="section-desc">
+                Geospatial AI clustering of recurring defect corridors, critical infrastructure risk zones, and preventive maintenance hotspots.
+              </p>
+            </div>
 
-      <div class="card" style="padding: 0; overflow: hidden; position: relative;">
-        <div id="city-wide-map" style="height: 600px; width: 100%;"></div>
-      </div>
-    </section>
+            <!-- Hotspot Metrics -->
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <div style="background: var(--bg-surface); border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 6px; font-size: 0.82rem;">
+                🔥 Hotspot Clusters: <strong id="hotspot-stat-total-clusters" style="color: #f59e0b;">4</strong>
+              </div>
+              <div style="background: var(--bg-surface); border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 6px; font-size: 0.82rem;">
+                🚨 Critical Risk: <strong id="hotspot-stat-critical" style="color: #ef4444;">2</strong>
+              </div>
+              <div style="background: var(--bg-surface); border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 6px; font-size: 0.82rem;">
+                📍 Active Incidents: <strong id="hotspot-stat-incidents" style="color: #38bdf8;">20</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hotspot Filters & Legend -->
+          <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; flex-wrap: wrap; gap: 10px; background: rgba(255,255,255,0.03); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+            <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+              <span style="font-size: 0.78rem; color: var(--text-dim); margin-right: 4px;">Filter By:</span>
+              <button type="button" class="btn-action-sm btn-hotspot-filter active" data-filter="ALL" onclick="HotspotMap.filterCityMap('ALL')">All Hotspots</button>
+              <button type="button" class="btn-action-sm btn-hotspot-filter" data-filter="CRITICAL" onclick="HotspotMap.filterCityMap('CRITICAL')">🔴 Critical Risk Only</button>
+              <button type="button" class="btn-action-sm btn-hotspot-filter" data-filter="POTHOLE" onclick="HotspotMap.filterCityMap('POTHOLE')">🕳️ Potholes</button>
+              <button type="button" class="btn-action-sm btn-hotspot-filter" data-filter="WATER" onclick="HotspotMap.filterCityMap('WATER')">💧 Water Leakage</button>
+              <button type="button" class="btn-action-sm btn-hotspot-filter" data-filter="LIGHT" onclick="HotspotMap.filterCityMap('LIGHT')">💡 Streetlights</button>
+            </div>
+
+            <!-- Legend -->
+            <div style="display: flex; gap: 12px; font-size: 0.75rem; color: var(--text-dim); align-items: center;">
+              <span><strong style="color: #ef4444;">●</strong> Critical (Urgent)</span>
+              <span><strong style="color: #f59e0b;">●</strong> High Priority</span>
+              <span><strong style="color: #38bdf8;">●</strong> Moderate/Watch</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="padding: 0; overflow: hidden; position: relative; border-radius: 8px;">
+          <div id="city-wide-map" style="height: 600px; width: 100%;"></div>
+        </div>
+      </section>
 
     <!-- =========================================================================
          TAB 9: ASSETS REGISTRY (ADMINISTRATOR ONLY)
