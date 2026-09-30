@@ -224,7 +224,8 @@ app.post('/api/ai/analyze-image', upload.single('image'), async (req, res) => {
       return res.status(400).json({ error: 'No image file uploaded. Please upload a JPG, JPEG, or PNG image.' });
     }
 
-    const aiResult = await analyzeInfrastructureImage(filePath, originalName, mimeType, fileSize);
+    const userApiKey = req.headers['x-gemini-api-key'] || req.body.geminiApiKey || process.env.GEMINI_API_KEY;
+    const aiResult = await analyzeInfrastructureImage(filePath, originalName, mimeType, fileSize, userApiKey);
     const relativeUrl = req.file ? `/uploads/${req.file.filename}` : `/${req.body.samplePath.replace(/^\/+/, '')}`;
 
     return res.json({

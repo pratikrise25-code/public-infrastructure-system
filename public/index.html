@@ -110,7 +110,10 @@
         </button>
       </nav>
 
-      <div class="system-status-indicator" title="Vision models and background queues operational">
+      <button type="button" class="btn-user-switch" id="btn-config-ai-key" onclick="IssueDetection.openApiKeyModal()" style="margin-right: 8px; border-color: rgba(56,189,248,0.4);" title="Configure Google Gemini Vision API Key">
+          ⚙️ AI Vision Key
+        </button>
+        <div class="system-status-indicator" title="Vision models and background queues operational">
         <div class="pulse-dot"></div>
         <span id="ai-engine-status-text">AI Engine Active</span>
       </div>
@@ -311,6 +314,23 @@
 
               <div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 8px;" id="simple-provider-info">
                 Analyzed by: AI Vision Engine (AI-Assisted)
+              </div>
+
+              <!-- 1-Tap Quick Correction Chips -->
+              <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <span style="font-size: 0.78rem; color: var(--text-dim);">Want to adjust or verify AI defect? Tap below:</span>
+                  <span style="font-size: 0.72rem; color: var(--accent-cyan); font-weight: 600;">1-Tap Correction</span>
+                </div>
+                <div class="ai-correction-chips" style="display: flex; gap: 6px; flex-wrap: wrap;">
+                  <button type="button" class="btn-action-sm btn-category-chip active" data-issue="Pothole" onclick="IssueDetection.overrideCategory('Pothole')">🕳️ Pothole</button>
+                  <button type="button" class="btn-action-sm btn-category-chip" data-issue="Road crack" onclick="IssueDetection.overrideCategory('Road crack')">⚡ Road Crack</button>
+                  <button type="button" class="btn-action-sm btn-category-chip" data-issue="Broken streetlight" onclick="IssueDetection.overrideCategory('Broken streetlight')">💡 Streetlight</button>
+                  <button type="button" class="btn-action-sm btn-category-chip" data-issue="Water leakage" onclick="IssueDetection.overrideCategory('Water leakage')">💧 Water Leak</button>
+                  <button type="button" class="btn-action-sm btn-category-chip" data-issue="Damaged sidewalk" onclick="IssueDetection.overrideCategory('Damaged sidewalk')">🚶 Sidewalk</button>
+                  <button type="button" class="btn-action-sm btn-category-chip" data-issue="Garbage accumulation" onclick="IssueDetection.overrideCategory('Garbage accumulation')">🗑️ Garbage</button>
+                  <button type="button" class="btn-action-sm btn-category-chip" data-issue="Damaged public building" onclick="IssueDetection.overrideCategory('Damaged public building')">🏢 Building</button>
+                </div>
               </div>
             </div>
           </div>
@@ -1023,6 +1043,39 @@
         <button type="button" class="action-btn-primary" id="btn-save-weights">
           Save & Normalize AI Weights
         </button>
+      </div>
+    </div>
+  </div>
+
+  
+  <!-- Gemini Vision Key Modal -->
+  <div class="modal-overlay" id="gemini-key-modal" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title"><span>⚙️</span> Configure Google Gemini Live Vision AI</h3>
+        <button class="modal-close-btn" type="button" onclick="IssueDetection.closeApiKeyModal()">&times;</button>
+      </div>
+      <div>
+        <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 1rem;">
+          NagarDrishti AI includes a built-in Neural Vision Classifier. You can optionally connect a free Google Gemini 1.5/2.0 API key for live multimodal cloud recognition.
+        </p>
+
+        <div class="form-group">
+          <label class="form-label" for="input-gemini-key">Google Gemini API Key</label>
+          <input type="password" id="input-gemini-key" class="form-input" placeholder="AIzaSy...">
+          <span style="font-size: 0.74rem; color: var(--text-dim); margin-top: 4px; display: block;">
+            Get a free key from <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--accent-cyan);">Google AI Studio</a>. Saved locally in your browser.
+          </span>
+        </div>
+
+        <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.5rem;">
+          <button type="button" class="btn-action-sm" onclick="IssueDetection.clearApiKey()" style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid #ef4444;">
+            Remove Key
+          </button>
+          <button type="button" class="action-btn-primary" onclick="IssueDetection.saveApiKey()">
+            Save & Activate Live Gemini
+          </button>
+        </div>
       </div>
     </div>
   </div>

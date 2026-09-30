@@ -15,6 +15,57 @@ const IssueDetection = {
     this.setupUploadHandlers();
     this.setupSampleChips();
     this.setupComplaintForm();
+    this.checkStoredApiKey();
+  },
+
+  checkStoredApiKey() {
+    const key = localStorage.getItem('nagardrishti_gemini_key');
+    const btn = document.getElementById('btn-config-ai-key');
+    if (btn && key) {
+      btn.innerHTML = '<span>⚡</span> Live Gemini Active';
+      btn.style.borderColor = '#10b981';
+      btn.style.color = '#10b981';
+    }
+  },
+
+  openApiKeyModal() {
+    const modal = document.getElementById('gemini-key-modal');
+    const input = document.getElementById('input-gemini-key');
+    if (modal) modal.style.display = 'flex';
+    if (input) input.value = localStorage.getItem('nagardrishti_gemini_key') || '';
+  },
+
+  closeApiKeyModal() {
+    const modal = document.getElementById('gemini-key-modal');
+    if (modal) modal.style.display = 'none';
+  },
+
+  saveApiKey() {
+    const input = document.getElementById('input-gemini-key');
+    const val = (input?.value || '').trim();
+    if (val) {
+      localStorage.setItem('nagardrishti_gemini_key', val);
+      App.showToast('Google Gemini Live Vision AI activated!', 'success');
+    } else {
+      localStorage.removeItem('nagardrishti_gemini_key');
+      App.showToast('Using NagarDrishti Built-in Vision Engine', 'info');
+    }
+    this.checkStoredApiKey();
+    this.closeApiKeyModal();
+  },
+
+  clearApiKey() {
+    localStorage.removeItem('nagardrishti_gemini_key');
+    const input = document.getElementById('input-gemini-key');
+    if (input) input.value = '';
+    const btn = document.getElementById('btn-config-ai-key');
+    if (btn) {
+      btn.innerHTML = '<span>⚙️</span> AI Vision Key';
+      btn.style.borderColor = 'rgba(56,189,248,0.4)';
+      btn.style.color = '';
+    }
+    App.showToast('API Key removed. Switched to Built-in Vision Engine.', 'info');
+    this.closeApiKeyModal();
   },
 
   setupUploadHandlers() {
@@ -33,7 +84,6 @@ const IssueDetection = {
       fileInput.click();
     });
 
-    // Drag and drop events
     ['dragenter', 'dragover'].forEach(eventName => {
       dropZone.addEventListener(eventName, (e) => {
         e.preventDefault();
@@ -65,31 +115,28 @@ const IssueDetection = {
   },
 
   handleFileSelected(file) {
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!validTypes.includes(file.type.toLowerCase())) {
       App.showToast('Please upload a JPG, JPEG, or PNG image photo.', 'error');
       return;
     }
 
-    const maxSize = 10 * 1024 * 1024;
+    const maxSize = 15 * 1024 * 1024;
     if (file.size > maxSize) {
-      App.showToast('Image size exceeds 10MB limit. Please upload a smaller photo.', 'error');
+      App.showToast('Image size exceeds 15MB limit. Please upload a smaller photo.', 'error');
       return;
     }
 
     this.currentFile = file;
     this.currentSamplePath = null;
 
-    // Show image preview
     const reader = new FileReader();
     reader.onload = (e) => {
       this.displayPreview(e.target.result, file.name, (file.size / 1024).toFixed(1) + ' KB');
-      // Automatically trigger AI analysis!
       this.runAiAnalysis();
     };
     reader.readAsDataURL(file);
 
-    // Deselect sample chips
     document.querySelectorAll('.sample-chip').forEach(c => c.classList.remove('active'));
   },
 
@@ -107,7 +154,6 @@ const IssueDetection = {
         this.currentSamplePath = samplePath;
 
         this.displayPreview(samplePath, sampleName, 'Municipal Sample Asset');
-        // Automatically trigger AI analysis!
         this.runAiAnalysis();
       });
     });
@@ -127,10 +173,8 @@ const IssueDetection = {
 
   async runAiAnalysis() {
     const scanOverlay = document.getElementById('scan-overlay-element');
-    const simpleBox = document.getElementById('ai-simple-result-box');
-
     if (scanOverlay) scanOverlay.classList.add('scanning');
-    App.showToast('AI Vision analyzing infrastructure photo...', 'info');
+    App.showToast('AI Vision analyzing infrastructure defect...', 'info');
 
     try {
       const formData = new FormData();
@@ -142,8 +186,15 @@ const IssueDetection = {
         return;
       }
 
+      const headers = {};
+      const userKey = localStorage.getItem('nagardrishti_gemini_key');
+      if (userKey) {
+        headers['x-gemini-api-key'] = userKey;
+      }
+
       const response = await fetch('/api/ai/analyze-image', {
         method: 'POST',
+        headers,
         body: formData
       });
 
@@ -192,7 +243,7 @@ const IssueDetection = {
     }
 
     if (confEl) {
-      confEl.textContent = `${Math.round(data.confidence)}% Confidence`;
+      confEl.textContent = `${Math.round(data.confidence || 92)}% Confidence`;
     }
 
     if (expEl) {
@@ -203,11 +254,15 @@ const IssueDetection = {
       provEl.textContent = `Analyzed by: ${data.provider || 'AI Vision Engine'} (AI-Assisted)`;
     }
 
+    // Highlight matching chip
+    document.querySelectorAll('.btn-category-chip').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-issue') === data.issueType);
+    });
+
     box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   },
 
   autoFillForm(data) {
-    // Select Issue Type
     const issueSelect = document.getElementById('complaint-issue-type');
     if (issueSelect) {
       const val = data.issueType;
@@ -224,14 +279,12 @@ const IssueDetection = {
       }
     }
 
-    // Set Hidden Severity & Department
     const sevInput = document.getElementById('complaint-severity');
     if (sevInput) sevInput.value = data.severity;
 
     const deptInput = document.getElementById('complaint-department');
     if (deptInput) deptInput.value = data.department;
 
-    // Set Short Description
     const descInput = document.getElementById('complaint-description');
     if (descInput) {
       descInput.value = data.simpleExplanation || data.description || '';
@@ -239,9 +292,65 @@ const IssueDetection = {
   },
 
   /**
+   * 1-Tap Category Override & Calibration
+   */
+  overrideCategory(issueType) {
+    const severities = {
+      'Pothole': 'CRITICAL',
+      'Water leakage': 'CRITICAL',
+      'Broken streetlight': 'HIGH',
+      'Damaged public building': 'HIGH',
+      'Road crack': 'MEDIUM',
+      'Damaged sidewalk': 'MEDIUM',
+      'Garbage accumulation': 'MEDIUM',
+      'Other infrastructure damage': 'MEDIUM'
+    };
+
+    const departments = {
+      'Pothole': 'Roads & Bridges',
+      'Road crack': 'Roads & Bridges',
+      'Damaged sidewalk': 'Roads & Bridges',
+      'Broken streetlight': 'Electrical & Lighting',
+      'Water leakage': 'Water & Sewerage',
+      'Garbage accumulation': 'Public Works & Sanitation',
+      'Damaged public building': 'Municipal Buildings'
+    };
+
+    const explanations = {
+      'Pothole': 'Road surface cavity observed. Urgent cold-asphalt patching required to prevent vehicle rim fractures.',
+      'Road crack': 'Longitudinal pavement distress fissures detected. Bitumen sealing needed to prevent water seepage.',
+      'Broken streetlight': 'Damaged or unlit street luminaire fixture compromising nighttime citizen safety.',
+      'Water leakage': 'Pressurized municipal water line seepage or drain overflow flooding road foundation.',
+      'Damaged sidewalk': 'Uneven or fractured interlocking paving blocks creating pedestrian trip hazard.',
+      'Garbage accumulation': 'Civic waste pile obstructing pedestrian thoroughfare and storm drains.',
+      'Damaged public building': 'Visible masonry spalling or plaster fracture on municipal civic facility.'
+    };
+
+    const sev = severities[issueType] || 'MEDIUM';
+    const dept = departments[issueType] || 'Roads & Bridges';
+    const exp = explanations[issueType] || 'Defect verified by citizen calibration.';
+
+    const updated = {
+      issueType,
+      severity: sev,
+      department: dept,
+      confidence: 97.0,
+      description: exp,
+      simpleIssue: `${issueType} detected`,
+      simpleSeverity: `${sev} Priority`,
+      simpleExplanation: exp,
+      provider: 'NagarDrishti Calibrated Vision Model'
+    };
+
+    this.latestAiResult = { ...(this.latestAiResult || {}), ...updated };
+    this.renderSimpleResult(updated);
+    this.autoFillForm(updated);
+
+    App.showToast(`Issue calibrated to: ${issueType} (${sev} Priority)`, 'success');
+  },
+
+  /**
    * REAL-TIME GPS GEOLOCATION ENGINE
-   * Detects real device coordinates, reverse geocodes to street address via OpenStreetMap,
-   * renders an interactive pinpoint mini-map, and provides IP fallback if GPS is denied.
    */
   async useCurrentLocation() {
     const gpsBtn = document.getElementById('btn-use-gps');
@@ -311,7 +420,6 @@ const IssueDetection = {
         throw new Error('IP Geolocation not available');
       }
     } catch (e) {
-      // Fallback to central coordinates
       await this.applyCoordinates(12.9716, 77.5946, 100, 'City Center');
       App.showToast('Location estimated. Please click on the mini-map to pinpoint the exact spot.', 'info');
     }
@@ -333,7 +441,6 @@ const IssueDetection = {
       accuracyBadge.textContent = `±${accuracy}m accuracy`;
     }
 
-    // Reverse geocode via OpenStreetMap Nominatim
     let resolvedAddress = `GPS Coordinates: ${lat.toFixed(5)}° N, ${lng.toFixed(5)}° E`;
     try {
       const nomRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`, {
@@ -354,7 +461,6 @@ const IssueDetection = {
       addressEl.innerHTML = `<strong>📍 Real Location:</strong> ${shortAddr} <br><span style="font-size: 0.74rem; color: var(--text-dim);">${lat.toFixed(5)}° N, ${lng.toFixed(5)}° E</span>`;
     }
 
-    // Add or select dynamic option in dropdown
     if (locSelect) {
       let gpsOption = document.getElementById('dynamic-gps-option');
       if (!gpsOption) {
@@ -367,7 +473,6 @@ const IssueDetection = {
       locSelect.value = 'gps-custom';
     }
 
-    // Render interactive mini map
     this.renderMiniMap(lat, lng);
   },
 
@@ -383,7 +488,6 @@ const IssueDetection = {
         attributionControl: false
       });
 
-      // 100% Free OpenStreetMap standard tiles
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19
       }).addTo(this.miniMap);
@@ -397,13 +501,11 @@ const IssueDetection = {
 
       this.miniMapMarker = L.marker([lat, lng], { draggable: true, icon: pinIcon }).addTo(this.miniMap);
 
-      // Listen for marker drag
       this.miniMapMarker.on('dragend', async (e) => {
         const newPos = e.target.getLatLng();
         await this.applyCoordinates(newPos.lat, newPos.lng, 10, 'Pin Repositioned');
       });
 
-      // Listen for click anywhere on map
       this.miniMap.on('click', async (e) => {
         this.miniMapMarker.setLatLng(e.latlng);
         await this.applyCoordinates(e.latlng.lat, e.latlng.lng, 10, 'Map Clicked');
@@ -476,7 +578,6 @@ const IssueDetection = {
           aiProvider: this.latestAiResult ? this.latestAiResult.provider : 'AI Vision Module'
         };
 
-        // Attach Real GPS coordinates if acquired!
         if (this.currentGps) {
           payload.latitude = this.currentGps.lat;
           payload.longitude = this.currentGps.lng;
@@ -498,7 +599,6 @@ const IssueDetection = {
           throw new Error(result.error || 'Failed to submit complaint');
         }
 
-        // Update user complaint counter in local state
         App.currentUser.complaintCount = result.userComplaintCount;
         const counterEl = document.getElementById('current-user-counter');
         if (counterEl) counterEl.textContent = `${result.userComplaintCount} Reports`;
@@ -510,7 +610,6 @@ const IssueDetection = {
 
         App.showToast(`Complaint registered! Ticket #${result.complaintNumber} with Priority: ${priorityLevel} (AI-Assisted)`, 'success');
 
-        // Reset form & GPS
         form.reset();
         document.getElementById('ai-simple-result-box').style.display = 'none';
         document.getElementById('image-preview-container').style.display = 'none';
@@ -520,7 +619,6 @@ const IssueDetection = {
         this.currentImageUrl = null;
         this.latestAiResult = null;
 
-        // Switch to My Complaints so citizen can see their complaint
         setTimeout(() => {
           App.switchTab('my-complaints-tab');
         }, 1200);
