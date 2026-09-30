@@ -35,20 +35,17 @@
       <span style="color: var(--text-dim); font-size: 0.8rem;">Logged in as:</span>
       <div class="user-badge-current" id="current-user-badge">
         <span id="current-user-icon">👤</span>
-        <span id="current-user-name">Priya Nair</span>
+        <span id="current-user-name">Public Citizen</span>
         <span style="color: var(--text-dim); font-size: 0.75rem;">(Citizen)</span>
-        <span class="counter-pill" id="current-user-counter" title="Your uploaded complaints count">20 Reports</span>
+        <span class="counter-pill" id="current-user-counter" title="Your uploaded complaints count">0 Reports</span>
       </div>
     </div>
 
     <!-- Quick Switcher Actions -->
     <div class="user-switch-actions">
       <span style="color: var(--text-dim); font-size: 0.75rem;">Switch Demo Account:</span>
-      <button type="button" class="btn-user-switch" id="btn-switch-new-citizen" onclick="App.switchToNewCitizenDemo()">
-        ➕ New Citizen (Starts with 0)
-      </button>
-      <button type="button" class="btn-user-switch" id="btn-switch-priya" onclick="App.switchUser(4)">
-        👤 Priya Nair (Citizen - 20)
+      <button type="button" class="btn-user-switch" id="btn-switch-citizen" onclick="App.switchUser(4)">
+        👤 Public Citizen
       </button>
       <button type="button" class="btn-user-switch btn-admin-switch" id="btn-switch-admin" onclick="App.switchUser(1)">
         🛡️ Municipal Admin
@@ -440,7 +437,7 @@
             <span>📋</span> My Reported Complaints
           </h2>
           <p class="section-desc">
-            Only complaints submitted by your account (<span id="my-complaints-user-name" style="color: #fff; font-weight: 600;">Priya Nair</span>) are displayed here. Your data is protected.
+            Only complaints submitted by your account (<span id="my-complaints-user-name" style="color: #fff; font-weight: 600;">Public Citizen</span>) are displayed here. Your data is protected.
           </p>
         </div>
         <div>
@@ -555,7 +552,7 @@
             👤
           </div>
           <div>
-            <h3 style="font-size: 1.3rem; color: #fff; margin-bottom: 4px;" id="profile-name">Priya Nair</h3>
+            <h3 style="font-size: 1.3rem; color: #fff; margin-bottom: 4px;" id="profile-name">Public Citizen</h3>
             <div style="font-size: 0.85rem; color: var(--accent-cyan);" id="profile-role">Registered Public Citizen</div>
           </div>
         </div>
@@ -563,15 +560,15 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
           <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
             <div style="font-size: 0.75rem; color: var(--text-dim);">Email Address</div>
-            <div style="font-weight: 600; color: #fff; margin-top: 4px;" id="profile-email">citizen.priya@outlook.com</div>
+            <div style="font-weight: 600; color: #fff; margin-top: 4px;" id="profile-email">citizen@nagardrishti.gov</div>
           </div>
           <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
             <div style="font-size: 0.75rem; color: var(--text-dim);">Contact Phone</div>
-            <div style="font-weight: 600; color: #fff; margin-top: 4px;" id="profile-phone">+91 98765 43213</div>
+            <div style="font-weight: 600; color: #fff; margin-top: 4px;" id="profile-phone">+91 98765 00000</div>
           </div>
           <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
             <div style="font-size: 0.75rem; color: var(--text-dim);">Complaints Submitted</div>
-            <div style="font-weight: 700; color: #38bdf8; font-size: 1.1rem; margin-top: 4px;" id="profile-count">20</div>
+            <div style="font-weight: 700; color: #38bdf8; font-size: 1.1rem; margin-top: 4px;" id="profile-count">0</div>
           </div>
         </div>
 

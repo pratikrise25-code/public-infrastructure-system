@@ -118,14 +118,14 @@ const server = app.listen(4568, async () => {
       throw new Error(`Expected 2 map points for user, got ${mapRes3.body.data.length}`);
     }
 
-    // 7. Verify existing citizen (Priya, id 4) does NOT see Rohan's complaints
+    // 7. Verify existing citizen (Public Citizen, id 4) does NOT see Rohan's complaints
     console.log('Testing citizen privacy & isolation...');
-    const priyaMap = await request('GET', '/api/hotspots/map-data?userId=4&role=citizen');
-    const rohanInPriyaMap = priyaMap.body.data.find(c => c.userId === rohanId);
-    if (rohanInPriyaMap) {
-      throw new Error('Leak detected! Priya saw Rohan\'s complaint');
+    const citizenMap = await request('GET', '/api/hotspots/map-data?userId=4&role=citizen');
+    const rohanInCitizenMap = citizenMap.body.data.find(c => c.userId === rohanId);
+    if (rohanInCitizenMap) {
+      throw new Error('Leak detected! Public Citizen saw Rohan\'s complaint');
     }
-    console.log(`Priya sees ${priyaMap.body.data.length} complaints, none of which belong to Rohan. Verified!`);
+    console.log(`Public Citizen sees ${citizenMap.body.data.length} complaints, none of which belong to Rohan. Verified!`);
 
     console.log('ALL WORKFLOW AND ISOLATION TESTS PASSED SUCCESSFULLY! ✅');
   } catch (err) {

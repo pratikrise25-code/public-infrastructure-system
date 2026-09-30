@@ -6,12 +6,12 @@ const App = {
   currentTab: 'home-tab',
   currentUser: {
     id: 4,
-    name: 'Priya Nair',
-    email: 'citizen.priya@outlook.com',
+    name: 'Public Citizen',
+    email: 'citizen@nagardrishti.gov',
     role: 'citizen',
-    phone: '+91 98765 43213',
+    phone: '+91 98765 00000',
     department: 'Public Citizen',
-    complaintCount: 20
+    complaintCount: 0
   },
   assets: [],
   locations: [],
@@ -26,8 +26,15 @@ const App = {
     if (savedUser) {
       try {
         const u = JSON.parse(savedUser);
-        this.switchUser(u.id);
+        if (u.name && (!['Commissioner R. K. Sharma', 'Public Citizen'].includes(u.name) || (u.id === 4 && u.complaintCount > 0))) {
+          localStorage.removeItem('civic_user');
+          this.switchUser(4);
+        } else {
+          this.switchUser(u.id);
+        }
       } catch (e) {
+        localStorage.removeItem('civic_user');
+      }
         this.switchUser(4);
       }
     } else {
@@ -189,10 +196,8 @@ const App = {
     document.querySelectorAll('.btn-user-switch').forEach(btn => btn.classList.remove('active'));
     if (user.id === 1) {
       document.getElementById('btn-switch-admin')?.classList.add('active');
-    } else if (user.id === 4) {
-      document.getElementById('btn-switch-priya')?.classList.add('active');
     } else {
-      document.getElementById('btn-switch-new-citizen')?.classList.add('active');
+      document.getElementById('btn-switch-citizen')?.classList.add('active');
     }
 
     // Refresh data

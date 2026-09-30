@@ -33,7 +33,8 @@ function seedDatabase() {
   insertUser.run('Commissioner R. K. Sharma', 'admin@metroinfra.gov', 'admin', '+91 98765 43210', 'Municipal Directorate');
   insertUser.run('Er. Anita Desai', 'anita.desai@metroinfra.gov', 'maintenance_staff', '+91 98765 43211', 'Roads & Infrastructure');
   insertUser.run('Er. Vikram Patil', 'vikram.patil@metroinfra.gov', 'maintenance_staff', '+91 98765 43212', 'Electrical & Utilities');
-  insertUser.run('Priya Nair', 'citizen.priya@outlook.com', 'citizen', '+91 98765 43213', 'Public Citizen');
+  insertUser.run('Public Citizen', 'citizen@nagardrishti.gov', 'citizen', '+91 98765 00000', 'Public Citizen');
+  insertUser.run('Ward Resident', 'resident@nagardrishti.gov', 'citizen', '+91 98765 11111', 'Civic Survey');
 
   // 3. Locations
   const insertLocation = db.prepare('INSERT INTO locations (name, address, ward_district, latitude, longitude, importance_level) VALUES (?, ?, ?, ?, ?, ?)');
@@ -208,8 +209,8 @@ function seedDatabase() {
   historicalData.forEach((item, index) => {
     // Insert complaint
     const result = insertComplaint.run(
-      item.num, 4, item.assetId, item.locId, item.issue, item.sev, item.dept,
-      item.desc, item.action, item.status, 1, 'Priya Nair', '+91 98765 43213', 'citizen.priya@outlook.com', item.date
+      item.num, 5, item.assetId, item.locId, item.issue, item.sev, item.dept,
+      item.desc, item.action, item.status, 1, 'Ward Resident', '+91 98765 11111', 'resident@nagardrishti.gov', item.date
     );
     const complaintId = result.lastInsertRowid;
 
