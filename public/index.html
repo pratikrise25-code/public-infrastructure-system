@@ -315,11 +315,11 @@
             </div>
           </div>
 
-          <!-- 2. FIELD: SELECT LOCATION -->
+          <!-- 2. FIELD: SELECT LOCATION & GPS -->
           <div style="margin-bottom: 2rem;">
             <div class="form-section-label">
               <span class="form-step-badge">2</span>
-              <span>Select Location</span>
+              <span>Select Location & GPS</span>
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <div style="flex: 1; min-width: 240px;">
@@ -333,12 +333,35 @@
                   <option value="6">Peenya Industrial Access Road (Ward 22 - Industrial)</option>
                 </select>
               </div>
-              <button type="button" class="btn-action-sm" onclick="IssueDetection.useCurrentLocation()" style="white-space: nowrap; height: 42px;">
+              <button type="button" class="btn-action-sm" id="btn-use-gps" onclick="IssueDetection.useCurrentLocation()" style="white-space: nowrap; height: 42px; background: rgba(56, 189, 248, 0.15); border: 1px solid var(--accent-cyan); color: #38bdf8; font-weight: 600;">
                 📍 Use My GPS Location
               </button>
             </div>
+
+            <!-- GPS Status Banner & Interactive Mini Map Pinpointer -->
+            <div id="gps-status-container" style="display: none; margin-top: 10px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span id="gps-status-indicator" style="font-size: 0.85rem; font-weight: 600; color: #10b981;">📡 GPS Pinpointed</span>
+                  <span id="gps-accuracy-badge" style="font-size: 0.72rem; background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 2px 8px; border-radius: 4px; font-weight: 600;">±10m</span>
+                </div>
+                <button type="button" onclick="IssueDetection.clearGps()" style="background: none; border: none; color: var(--text-dim); font-size: 0.78rem; cursor: pointer;">
+                  ✕ Reset GPS
+                </button>
+              </div>
+
+              <div id="gps-resolved-address" style="font-size: 0.84rem; color: var(--text-main); margin-bottom: 8px; font-weight: 500;">
+              </div>
+
+              <!-- Interactive Mini Pinpoint Map -->
+              <div id="gps-mini-map" style="height: 180px; width: 100%; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color);"></div>
+              <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 6px; text-align: center;">
+                💡 <em>Click anywhere on this map or drag the pin to fine-tune the exact defect location.</em>
+              </div>
+            </div>
+
             <span style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px; display: block;">
-              Select the street or area where this issue was spotted.
+              Click <strong>"📍 Use My GPS Location"</strong> to detect your real location automatically, or pick a ward from the dropdown.
             </span>
           </div>
 

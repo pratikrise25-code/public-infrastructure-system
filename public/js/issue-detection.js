@@ -1,12 +1,15 @@
 /**
- * AI Issue Detection & Citizen Reporting Workflow
- * Upload Photo -> AI Detects Issue -> AI Shows Severity in Simple Words -> Complaint Created -> Added to My Map
+ * NagarDrishti AI — AI Issue Detection & Citizen Reporting Workflow
+ * Upload Photo -> AI Detects Issue -> AI Shows Severity in Simple Words -> Real GPS Location Pinpointed -> Complaint Created -> Added to My Map
  */
 const IssueDetection = {
   currentFile: null,
   currentSamplePath: null,
   currentImageUrl: null,
   latestAiResult: null,
+  currentGps: null,
+  miniMap: null,
+  miniMapMarker: null,
 
   init() {
     this.setupUploadHandlers();
@@ -235,13 +238,202 @@ const IssueDetection = {
     }
   },
 
-  useCurrentLocation() {
-    const locSelect = document.getElementById('complaint-location-select');
-    if (locSelect && locSelect.options.length > 1) {
-      // Pick first urban ward as current GPS simulation
-      locSelect.selectedIndex = 1;
-      App.showToast('GPS Location applied: ' + locSelect.options[1].text, 'success');
+  /**
+   * REAL-TIME GPS GEOLOCATION ENGINE
+   * Detects real device coordinates, reverse geocodes to street address via OpenStreetMap,
+   * renders an interactive pinpoint mini-map, and provides IP fallback if GPS is denied.
+   */
+  async useCurrentLocation() {
+    const gpsBtn = document.getElementById('btn-use-gps');
+    const statusContainer = document.getElementById('gps-status-container');
+    const statusIndicator = document.getElementById('gps-status-indicator');
+    const addressEl = document.getElementById('gps-resolved-address');
+
+    if (gpsBtn) {
+      gpsBtn.disabled = true;
+      gpsBtn.innerHTML = '<span>📡</span> Detecting GPS...';
     }
+
+    if (statusContainer) statusContainer.style.display = 'block';
+    if (statusIndicator) {
+      statusIndicator.textContent = '📡 Acquiring GPS Satellites...';
+      statusIndicator.style.color = '#38bdf8';
+    }
+    if (addressEl) {
+      addressEl.innerHTML = '<em>Contacting device GPS sensor and satellites...</em>';
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const acc = Math.round(position.coords.accuracy || 15);
+
+          await this.applyCoordinates(lat, lng, acc, 'Real Device GPS');
+
+          if (gpsBtn) {
+            gpsBtn.disabled = false;
+            gpsBtn.innerHTML = '<span>✅</span> GPS Active';
+          }
+        },
+        async (err) => {
+          console.warn('HTML5 Geolocation error:', err.message, 'Falling back to IP geolocation...');
+          await this.fallbackIpGeolocation();
+          if (gpsBtn) {
+            gpsBtn.disabled = false;
+            gpsBtn.innerHTML = '<span>📍</span> Use My GPS Location';
+          }
+        },
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+      );
+    } else {
+      await this.fallbackIpGeolocation();
+      if (gpsBtn) {
+        gpsBtn.disabled = false;
+        gpsBtn.innerHTML = '<span>📍</span> Use My GPS Location';
+      }
+    }
+  },
+
+  async fallbackIpGeolocation() {
+    const addressEl = document.getElementById('gps-resolved-address');
+    const statusIndicator = document.getElementById('gps-status-indicator');
+    if (addressEl) addressEl.innerHTML = '<em>Device GPS permission unavailable. Estimating location via Network IP...</em>';
+
+    try {
+      const res = await fetch('https://ipwho.is/');
+      const data = await res.json();
+      if (data.success && data.latitude && data.longitude) {
+        await this.applyCoordinates(data.latitude, data.longitude, 500, 'Network IP (Approximate)');
+        App.showToast(`Approximate location found: ${data.city || 'Your City'}. Click map to refine.`, 'info');
+      } else {
+        throw new Error('IP Geolocation not available');
+      }
+    } catch (e) {
+      // Fallback to central coordinates
+      await this.applyCoordinates(12.9716, 77.5946, 100, 'City Center');
+      App.showToast('Location estimated. Please click on the mini-map to pinpoint the exact spot.', 'info');
+    }
+  },
+
+  async applyCoordinates(lat, lng, accuracy, source) {
+    this.currentGps = { lat, lng, accuracy };
+
+    const statusIndicator = document.getElementById('gps-status-indicator');
+    const accuracyBadge = document.getElementById('gps-accuracy-badge');
+    const addressEl = document.getElementById('gps-resolved-address');
+    const locSelect = document.getElementById('complaint-location-select');
+
+    if (statusIndicator) {
+      statusIndicator.textContent = `✅ GPS Pinpointed (${source})`;
+      statusIndicator.style.color = '#10b981';
+    }
+    if (accuracyBadge) {
+      accuracyBadge.textContent = `±${accuracy}m accuracy`;
+    }
+
+    // Reverse geocode via OpenStreetMap Nominatim
+    let resolvedAddress = `GPS Coordinates: ${lat.toFixed(5)}° N, ${lng.toFixed(5)}° E`;
+    try {
+      const nomRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      const nomData = await nomRes.json();
+      if (nomData && nomData.display_name) {
+        resolvedAddress = nomData.display_name;
+      }
+    } catch (err) {
+      console.warn('Reverse lookup failed:', err);
+    }
+
+    this.currentGps.address = resolvedAddress;
+
+    if (addressEl) {
+      const shortAddr = resolvedAddress.split(',').slice(0, 3).join(', ');
+      addressEl.innerHTML = `<strong>📍 Real Location:</strong> ${shortAddr} <br><span style="font-size: 0.74rem; color: var(--text-dim);">${lat.toFixed(5)}° N, ${lng.toFixed(5)}° E</span>`;
+    }
+
+    // Add or select dynamic option in dropdown
+    if (locSelect) {
+      let gpsOption = document.getElementById('dynamic-gps-option');
+      if (!gpsOption) {
+        gpsOption = document.createElement('option');
+        gpsOption.id = 'dynamic-gps-option';
+        locSelect.insertBefore(gpsOption, locSelect.options[1]);
+      }
+      gpsOption.value = 'gps-custom';
+      gpsOption.textContent = `📍 Real GPS: ${resolvedAddress.split(',')[0]} (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+      locSelect.value = 'gps-custom';
+    }
+
+    // Render interactive mini map
+    this.renderMiniMap(lat, lng);
+  },
+
+  renderMiniMap(lat, lng) {
+    const mapEl = document.getElementById('gps-mini-map');
+    if (!mapEl || typeof L === 'undefined') return;
+
+    if (!this.miniMap) {
+      this.miniMap = L.map('gps-mini-map', {
+        center: [lat, lng],
+        zoom: 16,
+        zoomControl: true,
+        attributionControl: false
+      });
+
+      // 100% Free OpenStreetMap standard tiles
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19
+      }).addTo(this.miniMap);
+
+      const pinIcon = L.divIcon({
+        className: 'custom-gps-pin',
+        html: `<div style="background: #ef4444; width: 26px; height: 26px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 10px rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: bold;">📍</div>`,
+        iconSize: [26, 26],
+        iconAnchor: [13, 13]
+      });
+
+      this.miniMapMarker = L.marker([lat, lng], { draggable: true, icon: pinIcon }).addTo(this.miniMap);
+
+      // Listen for marker drag
+      this.miniMapMarker.on('dragend', async (e) => {
+        const newPos = e.target.getLatLng();
+        await this.applyCoordinates(newPos.lat, newPos.lng, 10, 'Pin Repositioned');
+      });
+
+      // Listen for click anywhere on map
+      this.miniMap.on('click', async (e) => {
+        this.miniMapMarker.setLatLng(e.latlng);
+        await this.applyCoordinates(e.latlng.lat, e.latlng.lng, 10, 'Map Clicked');
+      });
+    } else {
+      this.miniMap.setView([lat, lng], 16);
+      if (this.miniMapMarker) {
+        this.miniMapMarker.setLatLng([lat, lng]);
+      }
+    }
+
+    setTimeout(() => {
+      if (this.miniMap) this.miniMap.invalidateSize();
+    }, 250);
+  },
+
+  clearGps() {
+    this.currentGps = null;
+    const container = document.getElementById('gps-status-container');
+    if (container) container.style.display = 'none';
+    const dynamicOpt = document.getElementById('dynamic-gps-option');
+    if (dynamicOpt) dynamicOpt.remove();
+    const locSelect = document.getElementById('complaint-location-select');
+    if (locSelect) locSelect.selectedIndex = 0;
+    const gpsBtn = document.getElementById('btn-use-gps');
+    if (gpsBtn) {
+      gpsBtn.disabled = false;
+      gpsBtn.innerHTML = '<span>📍</span> Use My GPS Location';
+    }
+    App.showToast('GPS reset. Please select a ward.', 'info');
   },
 
   setupComplaintForm() {
@@ -258,7 +450,7 @@ const IssueDetection = {
 
       const locationSelect = document.getElementById('complaint-location-select');
       if (!locationSelect || !locationSelect.value) {
-        App.showToast('Please select a location.', 'warning');
+        App.showToast('Please select or detect a location.', 'warning');
         locationSelect?.focus();
         return;
       }
@@ -273,7 +465,7 @@ const IssueDetection = {
           issueType: document.getElementById('complaint-issue-type').value,
           severity: document.getElementById('complaint-severity')?.value || 'MEDIUM',
           department: document.getElementById('complaint-department')?.value || 'Roads & Bridges',
-          locationId: locationSelect.value,
+          locationId: locationSelect.value === 'gps-custom' ? null : locationSelect.value,
           description: document.getElementById('complaint-description')?.value || 'Citizen reported infrastructure defect.',
           citizenName: App.currentUser.name,
           citizenPhone: App.currentUser.phone,
@@ -283,6 +475,13 @@ const IssueDetection = {
           aiConfidence: this.latestAiResult ? this.latestAiResult.confidence : 92.0,
           aiProvider: this.latestAiResult ? this.latestAiResult.provider : 'AI Vision Module'
         };
+
+        // Attach Real GPS coordinates if acquired!
+        if (this.currentGps) {
+          payload.latitude = this.currentGps.lat;
+          payload.longitude = this.currentGps.lng;
+          payload.address = this.currentGps.address;
+        }
 
         const response = await fetch('/api/complaints', {
           method: 'POST',
@@ -311,10 +510,11 @@ const IssueDetection = {
 
         App.showToast(`Complaint registered! Ticket #${result.complaintNumber} with Priority: ${priorityLevel} (AI-Assisted)`, 'success');
 
-        // Reset form
+        // Reset form & GPS
         form.reset();
         document.getElementById('ai-simple-result-box').style.display = 'none';
         document.getElementById('image-preview-container').style.display = 'none';
+        this.clearGps();
         this.currentFile = null;
         this.currentSamplePath = null;
         this.currentImageUrl = null;

@@ -398,6 +398,9 @@ app.post('/api/complaints', (req, res) => {
       userId,
       assetId,
       locationId,
+      latitude,
+      longitude,
+      address,
       issueType,
       severity,
       department,
@@ -425,6 +428,31 @@ app.post('/api/complaints', (req, res) => {
     const finalCitizenEmail = citizenEmail || (userRow ? userRow.email : '');
     const finalDept = department || 'Roads & Bridges';
 
+    // Handle real GPS coordinates dynamically
+    let finalLocationId = locationId && !isNaN(Number(locationId)) ? Number(locationId) : 1;
+    if (latitude !== undefined && longitude !== undefined && !isNaN(Number(latitude)) && !isNaN(Number(longitude))) {
+      const lat = Number(latitude);
+      const lng = Number(longitude);
+      const existingLoc = db.prepare(`
+        SELECT id FROM locations 
+        WHERE abs(latitude - ?) < 0.001 AND abs(longitude - ?) < 0.001
+        LIMIT 1
+      `).get(lat, lng);
+
+      if (existingLoc) {
+        finalLocationId = existingLoc.id;
+      } else {
+        const locName = address ? address.split(',')[0].trim() : `Citizen GPS Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+        const locAddr = address || `GPS Coordinates: ${lat}, ${lng}`;
+        const locWard = (address && (address.includes('Bengaluru') || address.includes('Karnataka'))) ? 'Metro Urban Sector' : 'Citizen Geo-Located Sector';
+        const ins = db.prepare(`
+          INSERT INTO locations (name, address, ward_district, latitude, longitude, importance_level)
+          VALUES (?, ?, ?, ?, ?, 3)
+        `).run(locName, locAddr, locWard, lat, lng);
+        finalLocationId = ins.lastInsertRowid;
+      }
+    }
+
     // Generate unique sequential complaint number
     const countRow = db.prepare('SELECT COUNT(*) as count FROM complaints').get();
     const complaintNumber = `CMP-${new Date().getFullYear()}-${String(countRow.count + 1).padStart(4, '0')}`;
@@ -442,7 +470,7 @@ app.post('/api/complaints', (req, res) => {
       complaintNumber,
       targetUserId,
       assetId ? Number(assetId) : null,
-      locationId ? Number(locationId) : 1,
+      finalLocationId,
       issueType,
       severity,
       finalDept,
