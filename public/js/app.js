@@ -34,7 +34,6 @@ const App = {
         }
       } catch (e) {
         localStorage.removeItem('civic_user');
-      }
         this.switchUser(4);
       }
     } else {
@@ -227,6 +226,7 @@ const App = {
       window.HotspotMap.onTabActivated(this.currentUser);
     } else if (tabId === 'city-map-tab' && window.HotspotMap) {
       window.HotspotMap.initCityMap();
+      window.HotspotMap.invalidateCityDimensions();
     } else if (tabId === 'my-complaints-tab') {
       this.loadMyComplaints();
     } else if (tabId === 'admin-tab' && window.AdminDashboard) {
