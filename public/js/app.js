@@ -26,7 +26,7 @@ const App = {
     if (savedUser) {
       try {
         const u = JSON.parse(savedUser);
-        if (u.name && (!['Commissioner R. K. Sharma', 'Public Citizen'].includes(u.name) || (u.id === 4 && u.complaintCount > 0))) {
+        if (u.name && (!['Commissioner: Pratik Raj', 'Public Citizen'].includes(u.name) || (u.id === 4 && u.complaintCount > 0))) {
           localStorage.removeItem('civic_user');
           this.switchUser(4);
         } else {
@@ -38,6 +38,67 @@ const App = {
       }
     } else {
       this.switchUser(4);
+    }
+  },
+
+  getAuthHeaders() {
+    return {
+      'x-user-role': this.currentUser ? this.currentUser.role : 'citizen',
+      'x-user-id': String(this.currentUser ? this.currentUser.id : 4)
+    };
+  },
+
+  openOfficerLoginModal() {
+    this.closeModals();
+    const modal = document.getElementById('officer-login-modal');
+    if (modal) {
+      modal.classList.add('open');
+      modal.style.display = 'flex';
+      const emailInput = document.getElementById('officer-login-email');
+      const passInput = document.getElementById('officer-login-password');
+      if (emailInput && !emailInput.value) emailInput.value = 'pratikr.ise25@cmrit.ac.in';
+      if (passInput) passInput.value = '';
+    }
+  },
+
+  async handleOfficerLoginSubmit(e) {
+    e.preventDefault();
+    const email = document.getElementById('officer-login-email').value;
+    const password = document.getElementById('officer-login-password').value;
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Invalid Municipal Officer credentials.');
+      }
+
+      this.closeModals();
+      this.setCurrentUser(json.user);
+      this.showToast('Authentication Successful! Welcome, Commissioner: Pratik Raj.', 'success');
+      this.switchTab('admin-tab');
+    } catch (err) {
+      this.showToast(err.message, 'error');
+    }
+  },
+
+  logoutOfficer() {
+    this.switchUser(4);
+    this.showToast('Logged out from Municipal Officer portal. Returned to Citizen mode.', 'info');
+    this.switchTab('home-tab');
+  },
+
+  openContactModal() {
+    this.closeModals();
+    const modal = document.getElementById('contact-modal');
+    if (modal) {
+      modal.classList.add('open');
+      modal.style.display = 'flex';
     }
   },
 
@@ -131,6 +192,10 @@ const App = {
   },
 
   async switchUser(userId) {
+    if (userId === 1 && this.currentUser.role !== 'admin') {
+      this.openOfficerLoginModal();
+      return;
+    }
     try {
       const res = await fetch(`/api/auth/me?userId=${userId}`);
       const json = await res.json();
@@ -171,6 +236,15 @@ const App = {
     // Update map counter badge
     const mapCountBadge = document.getElementById('my-map-reports-count');
     if (mapCountBadge) mapCountBadge.textContent = user.complaintCount;
+
+    const logoutBtn = document.getElementById('btn-logout-officer');
+    if (logoutBtn) {
+      logoutBtn.style.display = user.role === 'admin' ? 'inline-flex' : 'none';
+    }
+    const officerSwitchBtn = document.getElementById('btn-switch-admin');
+    if (officerSwitchBtn) {
+      officerSwitchBtn.style.display = user.role === 'admin' ? 'none' : 'inline-flex';
+    }
 
     // Toggle Citizen vs Admin Mode in UI
     const isAdmin = user.role === 'admin';
@@ -281,7 +355,9 @@ const App = {
     if (userHeaderName) userHeaderName.textContent = this.currentUser.name;
 
     try {
-      const res = await fetch(`/api/complaints?userId=${this.currentUser.id}&userOnly=true`);
+      const res = await fetch(`/api/complaints?userId=${this.currentUser.id}&userOnly=true`, {
+        headers: this.getAuthHeaders()
+      });
       const json = await res.json();
       if (!json.success) return;
 

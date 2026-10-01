@@ -21,7 +21,7 @@ const HotspotMap = {
   activeFilter: 'ALL',
 
   init() {
-    const citizenEl = document.getElementById('infrastructure-map');
+    const citizenEl = document.getElementById('my-citizen-map') || document.getElementById('infrastructure-map');
     if (citizenEl && citizenEl.offsetParent !== null) {
       this.initCitizenMap();
     }
@@ -72,7 +72,7 @@ const HotspotMap = {
   },
 
   initCitizenMap() {
-    const mapElement = document.getElementById('infrastructure-map');
+    const mapElement = document.getElementById('my-citizen-map') || document.getElementById('infrastructure-map');
     if (!mapElement || typeof L === 'undefined') return;
 
     if (this.citizenMap) {
@@ -81,7 +81,7 @@ const HotspotMap = {
     }
 
     try {
-      this.citizenMap = L.map('infrastructure-map', {
+      this.citizenMap = L.map(mapElement, {
         center: [12.9716, 77.5946],
         zoom: 13,
         zoomControl: true,
@@ -156,7 +156,12 @@ const HotspotMap = {
     const userId = user ? user.id : 4;
 
     try {
-      const res = await fetch(`/api/hotspots/map-data?userId=${userId}&role=citizen&userOnly=true`);
+      const res = await fetch(`/api/hotspots/map-data?userId=${userId}&role=citizen&userOnly=true`, {
+        headers: {
+          'x-user-role': user ? user.role : 'citizen',
+          'x-user-id': String(userId)
+        }
+      });
       const json = await res.json();
       if (!json.success) return;
 
@@ -246,11 +251,11 @@ const HotspotMap = {
   },
 
   async initCityMap() {
-    const mapElement = document.getElementById('city-wide-map');
+    const mapElement = document.getElementById('city-hotspot-map') || document.getElementById('city-wide-map');
     if (!mapElement || typeof L === 'undefined') return;
 
     if (!this.cityMap) {
-      this.cityMap = L.map('city-wide-map', {
+      this.cityMap = L.map(mapElement, {
         center: [12.9716, 77.5946],
         zoom: 13,
         zoomControl: true,
@@ -266,7 +271,12 @@ const HotspotMap = {
 
     try {
       // 1. Fetch complaints
-      const compRes = await fetch('/api/hotspots/map-data');
+      const compRes = await fetch('/api/hotspots/map-data', {
+        headers: {
+          'x-user-role': window.App ? window.App.currentUser.role : 'admin',
+          'x-user-id': String(window.App ? window.App.currentUser.id : 1)
+        }
+      });
       const compJson = await compRes.json();
       this.allCityComplaints = compJson.data || [];
 

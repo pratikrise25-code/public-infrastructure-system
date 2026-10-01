@@ -36,22 +36,24 @@
       <div class="user-badge-current" id="current-user-badge">
         <span id="current-user-icon">👤</span>
         <span id="current-user-name">Public Citizen</span>
-        <span style="color: var(--text-dim); font-size: 0.78rem;">(Citizen)</span>
+        <span style="color: var(--text-dim); font-size: 0.78rem;" id="current-user-role-label">(Citizen)</span>
         <span class="counter-pill" id="current-user-counter" title="Your submitted complaints count">0 Reports</span>
       </div>
     </div>
 
-    <!-- Switch Account Actions -->
+    <!-- Account Actions: Citizen vs Municipal Officer -->
     <div class="user-switch-actions">
-      <span style="color: var(--text-dim); font-size: 0.78rem;">Switch Account:</span>
       <button type="button" class="btn-user-switch" id="btn-switch-citizen" onclick="App.switchUser(4)">
-        👤 Public Citizen
+        👤 Citizen Portal
       </button>
-      <button type="button" class="btn-user-switch btn-admin-switch" id="btn-switch-admin" onclick="App.switchUser(1)">
-        🛡️ Municipal Admin
+      <button type="button" class="btn-user-switch btn-admin-switch" id="btn-switch-admin" onclick="App.openOfficerLoginModal()">
+        🛡️ Municipal Officer Login
+      </button>
+      <button type="button" class="btn-user-switch" id="btn-logout-officer" onclick="App.logoutOfficer()" style="display: none; background: #fef2f2; color: #dc2626; border-color: #fecaca;">
+        🚪 Logout (Citizen Mode)
       </button>
       <button type="button" class="btn-user-switch" onclick="App.openRegisterModal()" style="border-style: dashed;">
-        📝 Register New
+        📝 Register Citizen
       </button>
     </div>
   </div>
@@ -121,18 +123,33 @@
          TAB 0: CITIZEN HOME PAGE
          ========================================================================= -->
     <section class="tab-pane active" id="home-tab" role="tabpanel">
-      <!-- Big Hero Section -->
-      <div class="citizen-hero-card">
-        <h2 class="hero-title">Report a Public Infrastructure Problem</h2>
-        <p class="hero-subtitle">
-          Found a pothole, broken streetlight, road crack, water leak, damaged drainage, or broken footpath?
-          Upload a photo to report it directly to municipal maintenance teams. We will track and resolve it.
-        </p>
+      <!-- Big Hero Section with Vertical Moving Slogan (Requirement 7) -->
+      <div class="gov-hero-wrapper">
+        <div class="citizen-hero-card">
+          <h2 class="hero-title">Report a Public Infrastructure Problem</h2>
+          <p class="hero-subtitle">
+            Found a pothole, broken streetlight, road crack, water leak, damaged drainage, or broken footpath?
+            Upload a photo to report it directly to municipal maintenance teams. We will track and resolve it.
+          </p>
 
-        <!-- One Prominent Large REPORT ISSUE button -->
-        <button type="button" class="btn-hero-report" onclick="App.switchTab('detection-tab')">
-          <span>📸</span> REPORT AN ISSUE
-        </button>
+          <!-- One Prominent Large REPORT AN ISSUE button -->
+          <button type="button" class="btn-hero-report" onclick="App.switchTab('detection-tab')">
+            <span>📸</span> REPORT AN ISSUE
+          </button>
+        </div>
+
+        <!-- Subtle Vertical Scrolling Slogan on Right Side (Requirement 7) -->
+        <div class="gov-slogan-sidebar" title="Municipal Service Slogan">
+          <div class="gov-slogan-track">
+            <span class="gov-slogan-text">“See the Problem. Report It. Fix It.”</span>
+            <span class="gov-slogan-sep">•</span>
+            <span class="gov-slogan-text">“See the Problem. Report It. Fix It.”</span>
+            <span class="gov-slogan-sep">•</span>
+            <span class="gov-slogan-text">“See the Problem. Report It. Fix It.”</span>
+            <span class="gov-slogan-sep">•</span>
+            <span class="gov-slogan-text">“See the Problem. Report It. Fix It.”</span>
+          </div>
+        </div>
       </div>
 
       <!-- Quick Status & Activity Bar for the Citizen -->
@@ -551,6 +568,7 @@
       <div class="card-header" style="border: none; padding: 0; margin-bottom: 1.5rem;">
         <div>
           <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--civic-dark);">Municipal Administrator Dashboard</h2>
+          <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary); margin: 2px 0 4px;">Commissioner: Pratik Raj</div>
           <p style="font-size: 0.9rem; color: var(--text-dim);">City-wide infrastructure health, defect queues, priority scoring, and crew dispatching.</p>
         </div>
       </div>
@@ -818,14 +836,79 @@
     </div>
   </div>
 
+  
+  <!-- Municipal Officer Login Modal (Requirement 9) -->
+  <div class="modal-overlay" id="officer-login-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">🛡️ Municipal Officer Login</h3>
+        <button type="button" class="modal-close" onclick="App.closeModals()">✕</button>
+      </div>
+      <form onsubmit="App.handleOfficerLoginSubmit(event)">
+        <div class="modal-body">
+          <div style="background: var(--bg-subtle); border-left: 3px solid var(--primary); padding: 10px 14px; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+            Restricted municipal administrator console. Authorized municipal personnel only.
+          </div>
+          <div class="form-group">
+            <label class="form-label">Official Email Address *</label>
+            <input type="email" id="officer-login-email" class="form-input" value="pratikr.ise25@cmrit.ac.in" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password *</label>
+            <input type="password" id="officer-login-password" class="form-input" placeholder="Enter password" required autocomplete="current-password">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-action-sm" onclick="App.closeModals()">Cancel</button>
+          <button type="submit" class="action-btn-primary">Sign In as Officer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Contact Modal (Requirement 14) -->
+  <div class="modal-overlay" id="contact-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">📞 Municipal Contact Directory</h3>
+        <button type="button" class="modal-close" onclick="App.closeModals()">✕</button>
+      </div>
+      <div class="modal-body" style="font-size: 0.92rem; line-height: 1.7; color: var(--text-main);">
+        <p><strong>Metropolitan Municipal Infrastructure Authority</strong></p>
+        <p><strong>Commissioner: Pratik Raj</strong></p>
+        <p><strong>Citizen Grievance Helpline:</strong> 1800-425-0012 (Toll Free)</p>
+        <p><strong>Official Email:</strong> pratikr.ise25@cmrit.ac.in</p>
+        <p><strong>Headquarters:</strong> Civic Directorate Center, MG Road Arterial Corridor</p>
+        <p><strong>Working Hours:</strong> Monday – Saturday, 9:00 AM – 6:00 PM</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-action-sm" onclick="App.closeModals()">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification Container -->
   <div id="toast-container"></div>
 
-  <!-- Footer -->
-  <footer class="gov-footer">
-    <div><strong>NagarDristi AI</strong> — Metropolitan Public Infrastructure Asset Monitoring System</div>
-    <div style="margin-top: 4px; font-size: 0.78rem; color: #94a3b8;">
-      Civic authority maintenance and citizen complaint grievance resolution portal.
+  <!-- Footer (Requirement 14: Simple official-looking footer) -->
+  <footer class="gov-official-footer">
+    <div class="gov-footer-content">
+      <div class="gov-footer-title">Public Infrastructure Monitoring System</div>
+      <div class="gov-footer-links">
+        <span style="font-weight: 600; color: #cbd5e1; margin-right: 4px;">Useful links:</span>
+        <a href="javascript:void(0)" onclick="App.switchTab('home-tab')">Home</a>
+        <span>•</span>
+        <a href="javascript:void(0)" onclick="App.switchTab('detection-tab')">Report Issue</a>
+        <span>•</span>
+        <a href="javascript:void(0)" onclick="App.switchTab('my-complaints-tab')">My Complaints</a>
+        <span>•</span>
+        <a href="javascript:void(0)" onclick="App.switchTab('track-tab')">Track Complaint</a>
+        <span>•</span>
+        <a href="javascript:void(0)" onclick="App.openContactModal()">Contact</a>
+      </div>
+      <div class="gov-footer-copy">
+        © Public Infrastructure Monitoring System. All rights reserved.
+      </div>
     </div>
   </footer>
 

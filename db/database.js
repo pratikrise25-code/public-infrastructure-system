@@ -17,6 +17,7 @@ function initSchema() {
       name TEXT NOT NULL,
       email TEXT UNIQUE,
       role TEXT NOT NULL CHECK(role IN ('citizen', 'maintenance_staff', 'admin')),
+      password_hash TEXT,
       phone TEXT,
       department TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -200,7 +201,10 @@ function initSchema() {
 }
 
 // Initialize tables
-initSchema();
+try {
+    db.exec('ALTER TABLE users ADD COLUMN password_hash TEXT;');
+  } catch (e) {}
+  initSchema();
 
 module.exports = {
   db,

@@ -29,6 +29,24 @@ function seedDatabase() {
     console.warn('Migration note:', mErr.message);
   }
 
+  
+  // Migration: Ensure Commissioner is Pratik Raj and Officer password is set
+  try {
+    const crypto = require('crypto');
+    const officerHash = crypto.createHash('sha256').update('NagarDristi@2026').digest('hex');
+    db.prepare(`
+      UPDATE users 
+      SET name = 'Commissioner: Pratik Raj', 
+          email = 'pratikr.ise25@cmrit.ac.in', 
+          role = 'admin', 
+          department = 'Municipal Directorate',
+          password_hash = ?
+      WHERE id = 1 OR role = 'admin' OR email = 'admin@metroinfra.gov' OR email = 'pratikr.ise25@cmrit.ac.in'
+    `).run(officerHash);
+  } catch (err) {
+    console.warn('Officer seed update notice:', err.message);
+  }
+
   if (userCount > 0) {
     console.log('Database already seeded. Skipping seed process.');
     return;
@@ -55,7 +73,7 @@ function seedDatabase() {
 
   // 2. Users
   const insertUser = db.prepare('INSERT INTO users (name, email, role, phone, department) VALUES (?, ?, ?, ?, ?)');
-  insertUser.run('Commissioner R. K. Sharma', 'admin@metroinfra.gov', 'admin', '+91 98765 43210', 'Municipal Directorate');
+  insertUser.run('Commissioner: Pratik Raj', 'pratikr.ise25@cmrit.ac.in', 'admin', '+91 98765 43210', 'Municipal Directorate');
   insertUser.run('Er. Anita Desai', 'anita.desai@metroinfra.gov', 'maintenance_staff', '+91 98765 43211', 'Roads & Infrastructure');
   insertUser.run('Er. Vikram Patil', 'vikram.patil@metroinfra.gov', 'maintenance_staff', '+91 98765 43212', 'Electrical & Utilities');
   insertUser.run('Public Citizen', 'citizen@nagardrishti.gov', 'citizen', '+91 98765 00000', 'Public Citizen');

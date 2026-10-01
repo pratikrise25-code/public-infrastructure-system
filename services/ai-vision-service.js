@@ -126,7 +126,10 @@ function getSimpleWords(issueType, customSeverity) {
  */
 function validateImageFile(filePath, mimeType, fileSize) {
   if (!fs.existsSync(filePath)) {
-    throw new Error('Image file not found on server.');
+    return {
+      isValid: false,
+      reason: 'Unable to identify the issue clearly. Please upload a clearer image.'
+    };
   }
 
   const stats = fs.statSync(filePath);

@@ -1,5 +1,6 @@
 try { process.loadEnvFile(); } catch (e) {}
 const express = require('express');
+const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
@@ -23,6 +24,31 @@ const {
 } = require('./services/hotspot-analysis-service');
 
 const app = express();
+
+function hashPassword(pwd) {
+  return crypto.createHash('sha256').update((pwd || '').trim()).digest('hex');
+}
+const OFFICER_EMAIL = 'pratikr.ise25@cmrit.ac.in';
+const OFFICER_PASSWORD_HASH = hashPassword(process.env.OFFICER_PASSWORD || 'NagarDristi@2026');
+
+// Role-Based Access Control (RBAC) Middleware
+function requireMunicipalOfficer(req, res, next) {
+  const role = req.headers['x-user-role'];
+  const userId = Number(req.headers['x-user-id'] || 0);
+
+  if (role === 'admin' && userId === 1) {
+    const user = db.prepare('SELECT role FROM users WHERE id = 1').get();
+    if (user && user.role === 'admin') {
+      return next();
+    }
+  }
+
+  return res.status(403).json({
+    error: 'Access Denied — Municipal Officer access required.',
+    code: 'FORBIDDEN_OFFICER_ONLY'
+  });
+}
+
 const PORT = process.env.PORT || 3000;
 
 // Ensure upload directory exists
@@ -63,6 +89,41 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Initialize Seed Data
 seedDatabase();
+
+
+// Security: Block citizens from manually accessing /admin or /municipal-dashboard
+app.get(['/admin', '/municipal-dashboard'], (req, res) => {
+  const role = req.headers['x-user-role'];
+  const userId = Number(req.headers['x-user-id'] || 0);
+
+  if (role === 'admin' && userId === 1) {
+    return res.redirect('/?tab=admin-tab');
+  }
+
+  return res.status(403).send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Access Denied - 403 Forbidden</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f8fafc; color: #0f2942; }
+    .card { background: white; padding: 2.5rem; border-radius: 6px; border: 1px solid #cbd5e1; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.08); max-width: 480px; text-align: center; }
+    h1 { color: #dc2626; font-size: 1.6rem; margin-top: 0; }
+    p { color: #334155; line-height: 1.6; margin-bottom: 1.5rem; font-size: 1rem; }
+    .btn { display: inline-block; background: #0f2942; color: white; padding: 0.65rem 1.3rem; text-decoration: none; border-radius: 4px; font-weight: 600; }
+    .btn:hover { background: #1e3a8a; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>403 Forbidden</h1>
+    <p><strong>Access Denied — Municipal Officer access required.</strong></p>
+    <p>This administrative portal is restricted to authorized municipal personnel only. Citizens do not have permission to view municipal dashboards.</p>
+    <a class="btn" href="/">Return to Citizen Home</a>
+  </div>
+</body>
+</html>`);
+});
 
 // ==========================================
 // 0. AUTHENTICATION & USER PROFILE APIS
@@ -135,7 +196,7 @@ app.get('/api/auth/users', (req, res) => {
  */
 app.post('/api/auth/register', (req, res) => {
   try {
-    const { name, email, phone } = req.body;
+    const { name, email, phone, role } = req.body;
 
     if (!name) {
       return res.status(400).json({ error: 'Name is required to register.' });
@@ -145,9 +206,17 @@ app.post('/api/auth/register', (req, res) => {
       ? email.trim().toLowerCase() 
       : `citizen.${Date.now()}@metroinfra.local`;
 
+    // Security: Reject registration for officer email or officer role
+    if (cleanEmail === OFFICER_EMAIL || role === 'admin' || role === 'officer') {
+      return res.status(403).json({ error: 'Municipal Officer accounts cannot be created via public registration.' });
+    }
+
     // Check existing
-    const existing = db.prepare('SELECT * FROM users WHERE email = ?').get(cleanEmail);
+    const existing = db.prepare('SELECT id, name, email, role, phone, department FROM users WHERE email = ?').get(cleanEmail);
     if (existing) {
+      if (existing.role === 'admin') {
+        return res.status(403).json({ error: 'Municipal Officer accounts cannot be accessed via public registration.' });
+      }
       const complaintCount = db.prepare('SELECT COUNT(*) as c FROM complaints WHERE user_id = ?').get(existing.id).c;
       return res.json({
         success: true,
@@ -179,30 +248,41 @@ app.post('/api/auth/register', (req, res) => {
   }
 });
 
-/**
- * POST /api/auth/login
- * Simple user login by user ID or email
- */
 app.post('/api/auth/login', (req, res) => {
   try {
-    const { userId, email } = req.body;
+    const { userId, email, password } = req.body;
     let user;
 
     if (userId) {
-      user = db.prepare('SELECT id, name, email, role, phone, department FROM users WHERE id = ?').get(Number(userId));
+      user = db.prepare('SELECT id, name, email, role, phone, department, password_hash FROM users WHERE id = ?').get(Number(userId));
     } else if (email) {
-      user = db.prepare('SELECT id, name, email, role, phone, department FROM users WHERE email = ?').get(email.trim().toLowerCase());
+      user = db.prepare('SELECT id, name, email, role, phone, department, password_hash FROM users WHERE email = ?').get(email.trim().toLowerCase());
     }
 
     if (!user) {
       return res.status(404).json({ error: 'User account not found' });
     }
 
+    // Security: If logging in as Municipal Officer (admin) or User 1
+    if (user.role === 'admin' || user.id === 1 || (email && email.trim().toLowerCase() === OFFICER_EMAIL)) {
+      if (!password) {
+        return res.status(401).json({ error: 'Password is required for Municipal Officer access.' });
+      }
+
+      const inputHash = hashPassword(password);
+      const isMatch = (user.password_hash && inputHash === user.password_hash) || (inputHash === OFFICER_PASSWORD_HASH);
+      if (!isMatch) {
+        return res.status(401).json({ error: 'Invalid Municipal Officer credentials. Please check your email and password.' });
+      }
+    }
+
     const complaintCount = db.prepare('SELECT COUNT(*) as c FROM complaints WHERE user_id = ?').get(user.id).c;
+    const safeUser = { ...user };
+    delete safeUser.password_hash;
 
     return res.json({
       success: true,
-      user: { ...user, complaintCount }
+      user: { ...safeUser, complaintCount }
     });
   } catch (err) {
     return res.status(500).json({ error: 'Login failed', details: err.message });
@@ -416,7 +496,8 @@ app.post('/api/ai/compare-damage', upload.single('image'), async (req, res) => {
 app.get('/api/complaints', (req, res) => {
   try {
     const { status, issueType, limit = 100, userId, userOnly } = req.query;
-    const callerUserId = userId || req.headers['x-user-id'];
+    const callerRole = req.headers['x-user-role'];
+    const callerUserId = req.headers['x-user-id'] || userId;
 
     let query = `
       SELECT c.*, a.name as asset_name, a.asset_tag, l.name as location_name, l.ward_district,
@@ -432,11 +513,12 @@ app.get('/api/complaints', (req, res) => {
     `;
     const params = [];
 
-    // Citizen isolation: filter by citizen's user_id if specified or requested
-    if (callerUserId && callerUserId !== 'all' && (userOnly === 'true' || req.headers['x-user-role'] === 'citizen')) {
+    // Citizen Isolation: Citizens can ONLY see their own complaints
+    if (callerRole !== 'admin') {
+      const citizenId = Number(callerUserId || 4);
       query += ' AND c.user_id = ?';
-      params.push(Number(callerUserId));
-    } else if (callerUserId && callerUserId !== 'all' && req.query.filterUser) {
+      params.push(citizenId);
+    } else if (callerUserId && callerUserId !== 'all' && (userOnly === 'true' || req.query.filterUser)) {
       query += ' AND c.user_id = ?';
       params.push(Number(callerUserId));
     }
@@ -461,11 +543,11 @@ app.get('/api/complaints', (req, res) => {
   }
 });
 
-/**
- * GET /api/complaints/:id
- */
 app.get('/api/complaints/:id', (req, res) => {
   try {
+    const callerRole = req.headers['x-user-role'];
+    const callerUserId = Number(req.headers['x-user-id'] || 0);
+
     const complaint = db.prepare(`
       SELECT c.*, a.name as asset_name, a.asset_tag, a.condition as asset_condition,
              l.name as location_name, l.address, l.latitude, l.longitude, l.ward_district,
@@ -488,6 +570,11 @@ app.get('/api/complaints/:id', (req, res) => {
       return res.status(404).json({ error: 'Complaint not found' });
     }
 
+    // Security: Citizens can only access their own complaints
+    if (callerRole !== 'admin' && callerUserId && complaint.user_id !== callerUserId) {
+      return res.status(403).json({ error: 'Access Denied — You are not authorized to view this complaint.' });
+    }
+
     // Get images
     const images = db.prepare('SELECT * FROM images WHERE complaint_id = ?').all(complaint.id);
     complaint.images = images;
@@ -502,10 +589,6 @@ app.get('/api/complaints/:id', (req, res) => {
   }
 });
 
-/**
- * POST /api/complaints/check-duplicate
- * Pre-submission check for possible duplicate complaints
- */
 app.post('/api/complaints/check-duplicate', (req, res) => {
   try {
     const { latitude, longitude, locationId, assetId, issueType } = req.body;
@@ -555,6 +638,7 @@ app.post('/api/complaints', (req, res) => {
     const finalCitizenPhone = citizenPhone || (userRow ? userRow.phone : '');
     const finalCitizenEmail = citizenEmail || (userRow ? userRow.email : '');
     const finalDept = department || 'Roads & Bridges';
+    const cleanSeverity = String(severity || 'MEDIUM').toUpperCase();
 
     // Handle real GPS coordinates dynamically
     let finalLocationId = locationId && !isNaN(Number(locationId)) ? Number(locationId) : 1;
@@ -600,7 +684,7 @@ app.post('/api/complaints', (req, res) => {
       assetId ? Number(assetId) : null,
       finalLocationId,
       issueType,
-      severity,
+      cleanSeverity,
       finalDept,
       description || 'Citizen reported public infrastructure issue.',
       recommendedAction || 'Schedule physical maintenance inspection.',
@@ -642,7 +726,7 @@ app.post('/api/complaints', (req, res) => {
         imageId,
         issueType,
         Number(aiConfidence) || 90.0,
-        severity,
+        cleanSeverity,
         finalDept,
         description || '',
         recommendedAction || '',
@@ -687,7 +771,7 @@ app.post('/api/complaints', (req, res) => {
  * POST /api/complaints/:id/assign
  * Administrator assigns maintenance team and changes status to ASSIGNED
  */
-app.post('/api/complaints/:id/assign', (req, res) => {
+app.post('/api/complaints/:id/assign', requireMunicipalOfficer, (req, res) => {
   try {
     const { teamName, scheduledDate, notes } = req.body;
     const complaintId = req.params.id;
@@ -753,7 +837,7 @@ app.post('/api/complaints/:id/status', (req, res) => {
  * POST /api/complaints/:id/complete
  * Mark completed, upload completion photo, run AI before/after comparison & update maintenance history
  */
-app.post('/api/complaints/:id/complete', upload.single('completionImage'), async (req, res) => {
+app.post('/api/complaints/:id/complete', upload.single('completionImage'), requireMunicipalOfficer, async (req, res) => {
   try {
     const complaintId = req.params.id;
     const { actionTaken, performedBy, notes, costEstimate } = req.body;
@@ -841,7 +925,7 @@ app.post('/api/complaints/:id/complete', upload.single('completionImage'), async
  * POST /api/complaints/:id/override-priority
  * Administrator manually overrides AI priority
  */
-app.post('/api/complaints/:id/override-priority', (req, res) => {
+app.post('/api/complaints/:id/override-priority', requireMunicipalOfficer, (req, res) => {
   try {
     const { priorityLevel, priorityScore, reason } = req.body;
     if (!priorityLevel || !reason) {
@@ -865,7 +949,7 @@ app.post('/api/complaints/:id/override-priority', (req, res) => {
  * POST /api/complaints/merge
  * Administrator manually merges duplicate complaints
  */
-app.post('/api/complaints/merge', (req, res) => {
+app.post('/api/complaints/merge', requireMunicipalOfficer, (req, res) => {
   try {
     const { primaryComplaintId, duplicateComplaintId, notes } = req.body;
     if (!primaryComplaintId || !duplicateComplaintId) {
@@ -892,7 +976,7 @@ app.get('/api/priority/weights', (req, res) => {
   }
 });
 
-app.put('/api/priority/weights', (req, res) => {
+app.put('/api/priority/weights', requireMunicipalOfficer, (req, res) => {
   try {
     const updated = updatePriorityWeights(req.body);
     return res.json({ success: true, message: 'Priority weights updated successfully.', data: updated });
@@ -954,7 +1038,7 @@ app.get('/api/hotspots/preventive-recommendations', (req, res) => {
   }
 });
 
-app.post('/api/hotspots/preventive-recommendations/:id/acknowledge', (req, res) => {
+app.post('/api/hotspots/preventive-recommendations/:id/acknowledge', requireMunicipalOfficer, (req, res) => {
   try {
     const { acknowledged = true } = req.body;
     const result = toggleRecommendationAcknowledgment(req.params.id, acknowledged);
@@ -991,7 +1075,7 @@ app.get('/api/locations', (req, res) => {
   }
 });
 
-app.get('/api/admin/summary', (req, res) => {
+app.get('/api/admin/summary', requireMunicipalOfficer, (req, res) => {
   try {
     const totalAssets = db.prepare('SELECT COUNT(*) as c FROM assets').get().c;
     const activeComplaints = db.prepare("SELECT COUNT(*) as c FROM complaints WHERE status IN ('REPORTED', 'ASSIGNED', 'IN_PROGRESS')").get().c;
@@ -1031,7 +1115,7 @@ app.get('/api/admin/summary', (req, res) => {
  * POST /api/complaints/:id/correct-issue
  * Allows administrator to correct the detected issue type, severity, and department
  */
-app.post('/api/complaints/:id/correct-issue', (req, res) => {
+app.post('/api/complaints/:id/correct-issue', requireMunicipalOfficer, (req, res) => {
   try {
     const complaintId = req.params.id;
     const { issueType, severity, department, suggestedAction, reason } = req.body;

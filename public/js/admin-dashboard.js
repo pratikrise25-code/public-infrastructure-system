@@ -14,7 +14,9 @@ const AdminDashboard = {
 
   async loadSummary() {
     try {
-      const res = await fetch('/api/admin/summary');
+      const res = await fetch('/api/admin/summary', {
+        headers: window.App ? window.App.getAuthHeaders() : { 'x-user-role': 'admin', 'x-user-id': '1' }
+      });
       const json = await res.json();
       if (!json.success) return;
 
@@ -38,7 +40,9 @@ const AdminDashboard = {
     if (!tbody) return;
 
     try {
-      const res = await fetch('/api/complaints?limit=100');
+      const res = await fetch('/api/complaints?limit=100', {
+        headers: window.App ? window.App.getAuthHeaders() : { 'x-user-role': 'admin', 'x-user-id': '1' }
+      });
       const json = await res.json();
       if (!json.success) return;
 
@@ -169,7 +173,7 @@ const AdminDashboard = {
     try {
       const res = await fetch(`/api/complaints/${complaintId}/assign`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(window.App ? window.App.getAuthHeaders() : { 'x-user-role': 'admin', 'x-user-id': '1' }) },
         body: JSON.stringify({ teamName, scheduledDate, notes })
       });
 
@@ -221,7 +225,7 @@ const AdminDashboard = {
     try {
       const res = await fetch(`/api/complaints/${complaintId}/correct-issue`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(window.App ? window.App.getAuthHeaders() : { 'x-user-role': 'admin', 'x-user-id': '1' }) },
         body: JSON.stringify({ issueType, severity, department, reason })
       });
 
@@ -278,6 +282,7 @@ const AdminDashboard = {
     try {
       const res = await fetch(`/api/complaints/${complaintId}/complete`, {
         method: 'POST',
+        headers: window.App ? window.App.getAuthHeaders() : { 'x-user-role': 'admin', 'x-user-id': '1' },
         body: formData
       });
 
@@ -299,7 +304,7 @@ const AdminDashboard = {
     try {
       const res = await fetch(`/api/complaints/${complaintId}/status`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(window.App ? window.App.getAuthHeaders() : { 'x-user-role': 'admin', 'x-user-id': '1' }) },
         body: JSON.stringify({ status })
       });
       const json = await res.json();
