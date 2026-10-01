@@ -1,8 +1,22 @@
-const { DatabaseSync } = require('node:sqlite');
 const path = require('path');
 const fs = require('fs');
 
-const DB_PATH = path.join(__dirname, 'infrastructure.db');
+// Ensure database directory exists and is writable
+const DB_DIR = path.resolve(__dirname);
+if (!fs.existsSync(DB_DIR)) {
+  fs.mkdirSync(DB_DIR, { recursive: true });
+}
+const DB_PATH = path.join(DB_DIR, 'infrastructure.db');
+
+let DatabaseSync;
+try {
+  DatabaseSync = require('node:sqlite').DatabaseSync;
+} catch (err) {
+  console.error(`[CRITICAL] node:sqlite could not be loaded on Node.js ${process.version}.`);
+  console.error('Ensure Node.js >= 22.13.0 or launch with the --experimental-sqlite flag.');
+  throw err;
+}
+
 const db = new DatabaseSync(DB_PATH);
 
 // Enable foreign keys

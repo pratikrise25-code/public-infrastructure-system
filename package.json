@@ -4,9 +4,9 @@
   "description": "NagarDrishti AI — AI-Powered Vision for Better Cities",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "test": "node tests/priority-engine.test.js",
-    "workflow-test": "node test-workflow.js"
+    "start": "node --experimental-sqlite server.js",
+    "test": "node --experimental-sqlite tests/priority-engine.test.js",
+    "workflow-test": "node --experimental-sqlite test-workflow.js"
   },
   "keywords": [
     "infrastructure",
@@ -22,6 +22,6 @@
     "multer": "^2.4.0"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "node": "22.23.3"
   }
 }
