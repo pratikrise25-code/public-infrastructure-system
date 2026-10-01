@@ -5,3 +5,5 @@ uploads/infra-*
 .DS_Store
 
 cloudflared.exe
+*.db-wal
+*.db-shm
