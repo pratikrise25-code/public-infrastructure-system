@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NagarDristi AI- AI-Powered Vision for Better Cities</title>
-  <meta name="description" content="Simple citizen complaint application for public infrastructure. Upload photos, let AI detect issues, estimate severity, calculate priority, and track repair progress on your map.">
+  <title>NagarDristi AI - Municipal Infrastructure Portal</title>
+  <meta name="description" content="Municipal public infrastructure monitoring portal. Report potholes, streetlights, leaks, drainage issues and road cracks. AI-assisted defect detection with real GPS mapping and priority tracking.">
   
-  <!-- Modern Google Fonts: Inter -->
+  <!-- Modern Clean Typography: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
-  <!-- Leaflet Map CSS (CDN with local fallback) -->
+  <!-- Leaflet Map CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
   <link rel="stylesheet" href="css/leaflet.css">
   
-  <!-- Custom Design System Stylesheet -->
+  <!-- Civic Government Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -26,24 +26,24 @@
       <div class="gov-flag-stripe"></div>
       <span>METROPOLITAN MUNICIPAL INFRASTRUCTURE AUTHORITY</span>
     </div>
-    <div>NAGARDRISTI AI - AI-POWERED VISION FOR BETTER CITIES</div>
+    <div>NAGARDRISTI AI - PUBLIC SERVICE PORTAL</div>
   </div>
 
   <!-- User Switcher & Session Bar -->
   <div class="user-switch-bar">
     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-      <span style="color: var(--text-dim); font-size: 0.8rem;">Logged in as:</span>
+      <span style="color: var(--text-dim); font-size: 0.82rem;">Current Session:</span>
       <div class="user-badge-current" id="current-user-badge">
         <span id="current-user-icon">👤</span>
         <span id="current-user-name">Public Citizen</span>
-        <span style="color: var(--text-dim); font-size: 0.75rem;">(Citizen)</span>
-        <span class="counter-pill" id="current-user-counter" title="Your uploaded complaints count">0 Reports</span>
+        <span style="color: var(--text-dim); font-size: 0.78rem;">(Citizen)</span>
+        <span class="counter-pill" id="current-user-counter" title="Your submitted complaints count">0 Reports</span>
       </div>
     </div>
 
-    <!-- Quick Switcher Actions -->
+    <!-- Switch Account Actions -->
     <div class="user-switch-actions">
-      <span style="color: var(--text-dim); font-size: 0.75rem;">Switch Demo Account:</span>
+      <span style="color: var(--text-dim); font-size: 0.78rem;">Switch Account:</span>
       <button type="button" class="btn-user-switch" id="btn-switch-citizen" onclick="App.switchUser(4)">
         👤 Public Citizen
       </button>
@@ -63,21 +63,21 @@
         <div class="brand-emblem" id="app-logo">🏛️</div>
         <div>
           <h1 class="brand-title">
-            NagarDristi <span style="font-weight: 400; font-size: 0.9rem; color: var(--accent-cyan);">AI</span>
-            <span style="font-size: 0.72rem; background: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 2px 8px; border-radius: 4px; font-weight: 600;">AI-Assisted</span>
+            NagarDristi AI
+            <span class="brand-title-badge">AI-Assisted</span>
           </h1>
           <div class="brand-subtitle" id="portal-mode-label">AI-Powered Vision for Better Cities</div>
         </div>
       </div>
 
-      <!-- Navigation Tabs (Large Buttons, Simple Words) -->
+      <!-- Main Navigation (Simple, Clear, Citizen-Friendly) -->
       <nav class="citizen-nav-tabs" role="tablist">
-        <!-- Citizen Navigation (Visible in Citizen Mode) -->
+        <!-- Citizen Navigation: Home | Report Issue | My Complaints | My Map | Track Status -->
         <button class="citizen-nav-btn active citizen-only-tab" data-tab="home-tab" id="nav-home-btn" role="tab">
           <span>🏠</span> Home
         </button>
         <button class="citizen-nav-btn citizen-only-tab" data-tab="detection-tab" id="nav-detection-btn" role="tab">
-          <span>📸</span> Report an Issue
+          <span>📸</span> Report Issue
         </button>
         <button class="citizen-nav-btn citizen-only-tab" data-tab="my-complaints-tab" id="nav-complaints-btn" role="tab">
           <span>📋</span> My Complaints
@@ -86,10 +86,10 @@
           <span>🗺️</span> My Map
         </button>
         <button class="citizen-nav-btn citizen-only-tab" data-tab="track-tab" id="nav-track-btn" role="tab">
-          <span>🔍</span> Track Complaint
+          <span>🔍</span> Track Status
         </button>
         <button class="citizen-nav-btn citizen-only-tab" data-tab="profile-tab" id="nav-profile-btn" role="tab">
-          <span>👤</span> My Profile
+          <span>👤</span> Profile
         </button>
 
         <!-- Admin Navigation (Visible in Admin Mode) -->
@@ -97,22 +97,19 @@
           <span>📊</span> Admin Dashboard
         </button>
         <button class="citizen-nav-btn admin-only-tab" data-tab="all-complaints-tab" id="nav-all-complaints-btn" role="tab" style="display: none;">
-          <span>📋</span> All Complaints Pipeline
+          <span>📋</span> All Complaints
         </button>
         <button class="citizen-nav-btn" data-tab="city-map-tab" id="nav-city-map-btn" role="tab">
-          <span>🔥</span> AI Hotspot Map
+          <span>🔥</span> Hotspot Map
         </button>
         <button class="citizen-nav-btn admin-only-tab" data-tab="assets-tab" id="nav-assets-btn" role="tab" style="display: none;">
           <span>🏗️</span> Assets
         </button>
       </nav>
 
-      <button type="button" class="btn-user-switch" id="btn-config-ai-key" onclick="IssueDetection.openApiKeyModal()" style="margin-right: 8px; border-color: rgba(56,189,248,0.4);" title="Configure Google Gemini Vision API Key">
-          ⚙️ AI Vision Key
-        </button>
-        <div class="system-status-indicator" title="Vision models and background queues operational">
-        <div class="pulse-dot"></div>
-        <span id="ai-engine-status-text">AI Engine Active</span>
+      <div class="system-status-indicator" title="Municipal server active">
+        <span>●</span>
+        <span id="ai-engine-status-text">System Active</span>
       </div>
     </div>
   </header>
@@ -128,11 +125,11 @@
       <div class="citizen-hero-card">
         <h2 class="hero-title">Report a Public Infrastructure Problem</h2>
         <p class="hero-subtitle">
-          Found a pothole, broken streetlight, road crack, water leak, or damaged sidewalk?
-          Snap a photo and let AI identify the issue and calculate its priority. Our municipal crews will fix it.
+          Found a pothole, broken streetlight, road crack, water leak, damaged drainage, or broken footpath?
+          Upload a photo to report it directly to municipal maintenance teams. We will track and resolve it.
         </p>
 
-        <!-- One Large REPORT ISSUE button -->
+        <!-- One Prominent Large REPORT ISSUE button -->
         <button type="button" class="btn-hero-report" onclick="App.switchTab('detection-tab')">
           <span>📸</span> REPORT AN ISSUE
         </button>
@@ -158,7 +155,7 @@
           </div>
           <div class="stat-value" id="home-stat-in-progress">0</div>
           <div class="stat-footer">
-            <span class="stat-meta">Assigned or In Progress</span>
+            <span class="stat-meta">Assigned or in progress</span>
           </div>
         </div>
 
@@ -178,17 +175,6 @@
             <span class="stat-title">My Map Locations</span>
             <div class="stat-icon cyan"><span>🗺️</span></div>
           </div>
-
-          <div class="stat-card" style="cursor: pointer; border-left: 3px solid #f59e0b;" onclick="App.switchTab('city-map-tab')">
-            <div class="stat-header">
-              <span class="stat-title">AI Maintenance Hotspots</span>
-              <div class="stat-icon orange"><span>🔥</span></div>
-            </div>
-            <div class="stat-value" id="home-stat-hotspot-count">4 Zones</div>
-            <div class="stat-footer">
-              <span class="stat-meta">Explore city defect clusters →</span>
-            </div>
-          </div>
           <div class="stat-value" id="home-stat-map-count">0</div>
           <div class="stat-footer">
             <span class="stat-meta">Your personal reported map markers</span>
@@ -199,148 +185,185 @@
       <!-- Simple 3-Step Citizen Workflow Explanation -->
       <div class="card">
         <div class="card-header">
-          <h3 class="card-title"><span>⚡</span> How It Works — Simple & Easy</h3>
-          <span style="font-size: 0.8rem; color: var(--accent-cyan); font-weight: 600;">Easy to Report → Easy to Track → AI Helps in the Background</span>
+          <h3 class="card-title">How It Works — Simple & Easy</h3>
+          <span style="font-size: 0.85rem; color: var(--text-dim); font-weight: 500;">Civic Maintenance Workflow</span>
         </div>
         <div class="citizen-steps-grid">
           <div class="citizen-step-card">
             <div class="step-icon">📸</div>
-            <div class="step-title">1. Upload Photo & Location</div>
-            <div class="step-desc">Take a photo of the damaged road, light, or pipe. AI automatically identifies the issue and estimates severity in simple words.</div>
+            <div class="step-title">1. Upload Photo & Confirm</div>
+            <div class="step-desc">Take a photo of the problem. AI-assisted detection identifies the defect and severity in plain words, and you confirm if it is correct.</div>
           </div>
           <div class="citizen-step-card">
-            <div class="step-icon">🤖</div>
-            <div class="step-title">2. AI Priority Engine</div>
-            <div class="step-desc">The AI Priority Engine scores the complaint as LOW, MEDIUM, HIGH, or CRITICAL based on safety and public impact.</div>
+            <div class="step-icon">📍</div>
+            <div class="step-title">2. Pinpoint Location</div>
+            <div class="step-desc">Detect your GPS location with one touch or drag the pin on the map to mark the exact spot where repairs are needed.</div>
           </div>
           <div class="citizen-step-card">
-            <div class="step-icon">🗺️</div>
-            <div class="step-title">3. Track on My Map</div>
-            <div class="step-desc">Watch your complaint move from REPORTED → ASSIGNED → IN PROGRESS → COMPLETED. See your own markers on your private map.</div>
+            <div class="step-icon">✅</div>
+            <div class="step-title">3. Track to Resolution</div>
+            <div class="step-desc">Track status from REPORTED to ASSIGNED, IN PROGRESS, and COMPLETED with verified before/after restoration inspection photos.</div>
           </div>
         </div>
       </div>
     </section>
 
     <!-- =========================================================================
-         TAB 1: REPORT AN ISSUE (SIMPLIFIED 5-FIELD CITIZEN FORM)
+         TAB 1: REPORT AN ISSUE (SIMPLE 4-STEP CITIZEN FORM)
          ========================================================================= -->
     <section class="tab-pane" id="detection-tab" role="tabpanel">
-      <div class="section-header" style="max-width: 800px; margin: 0 auto 1.5rem;">
-        <div>
-          <h2 class="section-title">
-            <span>📸</span> Report a Public Infrastructure Problem
-          </h2>
-          <p class="section-desc">
-            Upload a photo below. The AI will automatically detect the defect and estimate its severity in simple words.
-          </p>
-        </div>
+      <div style="max-width: 820px; margin: 0 auto 1.5rem;">
+        <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--civic-dark); margin-bottom: 0.25rem;">
+          Report a Public Infrastructure Problem
+        </h2>
+        <p style="font-size: 0.95rem; color: var(--text-dim);">
+          Complete the simple 4-step form below to alert municipal maintenance crews.
+        </p>
       </div>
 
       <div class="simple-form-card">
         <form id="citizen-complaint-form">
 
-          <!-- 1. FIELD: UPLOAD PHOTO -->
-          <div style="margin-bottom: 2rem;">
+          <!-- 1. STEP: UPLOAD PHOTO -->
+          <div class="form-step-container">
             <div class="form-section-label">
               <span class="form-step-badge">1</span>
-              <span>Upload Photo of the Problem</span>
+              <span>Upload Photo</span>
             </div>
 
             <!-- Upload Dropzone -->
             <div class="upload-zone" id="upload-dropzone">
-              <input type="file" id="file-upload-input" accept=".jpg,.jpeg,.png,image/jpeg,image/png" style="display: none;">
+              <input type="file" id="file-upload-input" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" style="display: none;">
               <div class="upload-icon-wrapper">📷</div>
-              <div class="upload-title">Click to take or upload a photo, or drag it here</div>
-              <div class="upload-sub">Works with any photo of potholes, streetlights, leaks, or cracks (JPG, PNG)</div>
+              <div class="upload-title">Click to choose a photo, or drag it here</div>
+              <div class="upload-sub">Accepts photos of potholes, streetlights, cracks, water leaks, drains, etc. (JPG, PNG)</div>
               <button type="button" class="upload-btn" id="btn-select-file">Choose Photo</button>
             </div>
 
             <!-- Quick-Test Sample Library for Demo Testing -->
             <div class="sample-images-bar" style="margin-top: 1rem;">
-              <div class="sample-title">
-                <span>Or Click a Demo Sample to Test Instantly:</span>
-              </div>
+              <div class="sample-title">Or click a sample photo to test instantly:</div>
               <div class="sample-chips">
-                <button type="button" class="sample-chip" data-sample="/assets/sample-pothole.jpg" data-name="sample-pothole.jpg">
-                  🕳️ Pothole
-                </button>
-                <button type="button" class="sample-chip" data-sample="/assets/sample-streetlight.jpg" data-name="sample-streetlight.jpg">
-                  💡 Broken Streetlight
-                </button>
-                <button type="button" class="sample-chip" data-sample="/assets/sample-roadcrack.jpg" data-name="sample-roadcrack.jpg">
-                  ⚡ Road Crack
-                </button>
-                <button type="button" class="sample-chip" data-sample="/assets/sample-waterleak.jpg" data-name="sample-waterleak.jpg">
-                  💧 Water Leakage
-                </button>
-                <button type="button" class="sample-chip" data-sample="/assets/sample-sidewalk.jpg" data-name="sample-sidewalk.jpg">
-                  🚶 Damaged Sidewalk
-                </button>
+                <button type="button" class="sample-chip" data-sample="/assets/sample-pothole.jpg" data-name="sample-pothole.jpg">🕳️ Pothole</button>
+                <button type="button" class="sample-chip" data-sample="/assets/sample-roadcrack.jpg" data-name="sample-roadcrack.jpg">⚡ Road Crack</button>
+                <button type="button" class="sample-chip" data-sample="/assets/sample-streetlight.jpg" data-name="sample-streetlight.jpg">💡 Broken Streetlight</button>
+                <button type="button" class="sample-chip" data-sample="/assets/sample-sidewalk.jpg" data-name="sample-sidewalk.jpg">🚶 Damaged Footpath</button>
+                <button type="button" class="sample-chip" data-sample="/assets/sample-waterleak.jpg" data-name="sample-waterleak.jpg">💧 Water Leakage</button>
+                <button type="button" class="sample-chip" data-sample="/assets/sample-garbage.jpg" data-name="sample-garbage.jpg">🗑️ Garbage/Waste</button>
+                <button type="button" class="sample-chip" data-sample="/assets/sample-building.jpg" data-name="sample-building.jpg">🏢 Public Infrastructure</button>
               </div>
             </div>
 
-            <!-- Photo Preview & AI Scanning Indicator -->
+            <!-- Photo Preview -->
             <div class="preview-container" id="image-preview-container" style="display: none; margin-top: 1rem;">
               <div class="preview-badge">
                 <span id="preview-file-name">photo.jpg</span>
-                <span style="color: var(--text-dim);">•</span>
+                <span style="color: #cbd5e1;">•</span>
                 <span id="preview-file-size">Ready</span>
               </div>
-              <div class="scan-overlay" id="scan-overlay-element">
-                <div class="scan-line"></div>
-              </div>
-              <img id="image-preview-element" class="preview-image" src="" alt="Selected infrastructure preview">
+              <img id="image-preview-element" class="preview-image" src="" alt="Infrastructure photo preview">
             </div>
 
-            <!-- AI Detection Result in Simple Words -->
+            <!-- Analyzing Image Indicator -->
+            <div id="ai-analyzing-box" class="analyzing-indicator-box" style="display: none;">
+              <div class="analyzing-spinner"></div>
+              <div>
+                <div class="analyzing-title">Analyzing Image...</div>
+                <div class="analyzing-sub">Our AI is inspecting the image to detect the problem and estimate severity.</div>
+              </div>
+            </div>
+
+            <!-- AI-Assisted Detection Result Display in Simple Language -->
             <div class="ai-detection-simple-box" id="ai-simple-result-box" style="display: none;">
               <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                <span class="ai-assisted-tag">✨ AI-Assisted Issue Detection</span>
-                <span id="simple-confidence-badge" style="font-size: 0.8rem; color: var(--accent-cyan); font-weight: 600;">94% Confidence</span>
+                <span class="ai-assisted-tag">AI-Assisted Detection</span>
+                <span id="simple-confidence-badge" style="font-size: 0.85rem; font-weight: 700; color: var(--primary);">92% Confidence</span>
               </div>
 
-              <div class="ai-plain-headline">
-                <span id="simple-detected-title">Pothole Detected</span>
-                <span class="badge-severity HIGH" id="simple-severity-badge">HIGH SEVERITY</span>
+              <!-- Plain Language Result Grid -->
+              <div class="ai-plain-result-grid">
+                <div class="ai-field-item">
+                  <span class="ai-field-label">Detected Issue:</span>
+                  <span class="ai-field-value" id="simple-detected-title">Pothole</span>
+                </div>
+                <div class="ai-field-item">
+                  <span class="ai-field-label">Detection Confidence:</span>
+                  <span class="ai-field-value" id="simple-conf-value">92%</span>
+                </div>
+                <div class="ai-field-item">
+                  <span class="ai-field-label">Severity:</span>
+                  <span class="ai-field-value" id="simple-severity-value">High</span>
+                </div>
+                <div class="ai-field-item">
+                  <span class="ai-field-label">Suggested Action:</span>
+                  <span class="ai-field-value" id="simple-action-value">Road maintenance required</span>
+                </div>
               </div>
 
-              <p class="ai-plain-explanation" id="simple-detected-explanation">
-                A cavity was detected in the road surface that can cause vehicle damage or accidents if not repaired.
+              <p class="ai-plain-explanation" id="simple-detected-explanation" style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">
+                Road surface cavity observed that can cause vehicle damage or accidents.
               </p>
 
-              <div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 8px;" id="simple-provider-info">
-                Analyzed by: AI Vision Engine (AI-Assisted)
+              <!-- Citizen Confirmation: Is this issue correct? YES / CHANGE -->
+              <div class="ai-confirmation-box" id="ai-confirm-box">
+                <div class="ai-confirm-prompt">Is this issue correct?</div>
+                <div class="ai-confirm-actions">
+                  <button type="button" class="btn-confirm-yes" id="btn-confirm-yes" onclick="IssueDetection.confirmIssue()">
+                    ✓ YES
+                  </button>
+                  <button type="button" class="btn-confirm-change" id="btn-confirm-change" onclick="IssueDetection.toggleChangeIssue()">
+                    ✎ CHANGE
+                  </button>
+                </div>
               </div>
 
-              <!-- 1-Tap Quick Correction Chips -->
-              <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                  <span style="font-size: 0.78rem; color: var(--text-dim);">Want to adjust or verify AI defect? Tap below:</span>
-                  <span style="font-size: 0.72rem; color: var(--accent-cyan); font-weight: 600;">1-Tap Correction</span>
+              <!-- Change Issue Selector (Revealed when citizen taps CHANGE) -->
+              <div id="category-selector-wrapper" style="display: none; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color);">
+                <div style="font-size: 0.84rem; font-weight: 700; color: var(--civic-dark); margin-bottom: 8px;">
+                  Select the correct issue from the options below:
                 </div>
-                <div class="ai-correction-chips" style="display: flex; gap: 6px; flex-wrap: wrap;">
-                  <button type="button" class="btn-action-sm btn-category-chip active" data-issue="Pothole" onclick="IssueDetection.overrideCategory('Pothole')">🕳️ Pothole</button>
-                  <button type="button" class="btn-action-sm btn-category-chip" data-issue="Road crack" onclick="IssueDetection.overrideCategory('Road crack')">⚡ Road Crack</button>
-                  <button type="button" class="btn-action-sm btn-category-chip" data-issue="Broken streetlight" onclick="IssueDetection.overrideCategory('Broken streetlight')">💡 Streetlight</button>
-                  <button type="button" class="btn-action-sm btn-category-chip" data-issue="Water leakage" onclick="IssueDetection.overrideCategory('Water leakage')">💧 Water Leak</button>
-                  <button type="button" class="btn-action-sm btn-category-chip" data-issue="Damaged sidewalk" onclick="IssueDetection.overrideCategory('Damaged sidewalk')">🚶 Sidewalk</button>
-                  <button type="button" class="btn-action-sm btn-category-chip" data-issue="Garbage accumulation" onclick="IssueDetection.overrideCategory('Garbage accumulation')">🗑️ Garbage</button>
-                  <button type="button" class="btn-action-sm btn-category-chip" data-issue="Damaged public building" onclick="IssueDetection.overrideCategory('Damaged public building')">🏢 Building</button>
+                <div class="sample-chips" style="display: flex; gap: 6px; flex-wrap: wrap;">
+                  <button type="button" class="sample-chip" onclick="IssueDetection.selectCategory('Pothole')">🕳️ Pothole</button>
+                  <button type="button" class="sample-chip" onclick="IssueDetection.selectCategory('Road crack')">⚡ Road crack</button>
+                  <button type="button" class="sample-chip" onclick="IssueDetection.selectCategory('Broken streetlight')">💡 Broken streetlight</button>
+                  <button type="button" class="sample-chip" onclick="IssueDetection.selectCategory('Damaged footpath')">🚶 Damaged footpath</button>
+                  <button type="button" class="sample-chip" onclick="IssueDetection.selectCategory('Garbage/waste')">🗑️ Garbage/waste</button>
+                  <button type="button" class="sample-chip" onclick="IssueDetection.selectCategory('Water leakage')">💧 Water leakage</button>
+                  <button type="button" class="sample-chip" onclick="IssueDetection.selectCategory('Damaged drainage')">🚰 Damaged drainage</button>
+                  <button type="button" class="sample-chip" onclick="IssueDetection.selectCategory('Broken public infrastructure')">🏢 Broken public infrastructure</button>
+                  <button type="button" class="sample-chip" onclick="IssueDetection.selectCategory('Damaged road sign')">🛑 Damaged road sign</button>
+                  <button type="button" class="sample-chip" onclick="IssueDetection.selectCategory('Other visible infrastructure damage')">⚠️ Other visible damage</button>
                 </div>
               </div>
             </div>
+
+            <!-- Unclear Image Warning Banner -->
+            <div id="ai-unclear-box" class="ai-unclear-box" style="display: none;">
+              <div class="ai-unclear-title">⚠️ Issue Not Identified</div>
+              <div class="ai-unclear-message" id="ai-unclear-text">
+                Unable to identify the issue clearly. Please upload a clearer image.
+              </div>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button type="button" class="btn-action-sm" onclick="document.getElementById('file-upload-input').click()">
+                  📷 Upload Clearer Photo
+                </button>
+                <button type="button" class="btn-action-sm" onclick="IssueDetection.showManualCategoryPick()">
+                  Select Issue Manually
+                </button>
+              </div>
+            </div>
+
           </div>
 
-          <!-- 2. FIELD: SELECT LOCATION & GPS -->
-          <div style="margin-bottom: 2rem;">
+          <!-- 2. STEP: SELECT LOCATION -->
+          <div class="form-step-container">
             <div class="form-section-label">
               <span class="form-step-badge">2</span>
-              <span>Select Location & GPS</span>
+              <span>Select Location</span>
             </div>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
               <div style="flex: 1; min-width: 240px;">
-                <select id="complaint-location-select" class="form-select location-select-dropdown" required>
+                <select id="complaint-location-select" class="form-select" required>
                   <option value="">-- Choose Street / Area / Ward --</option>
                   <option value="1">MG Road Arterial Corridor (Ward 12 - Central)</option>
                   <option value="2">Outer Ring Road, Marathahalli (Ward 15 - Tech Hub)</option>
@@ -350,79 +373,62 @@
                   <option value="6">Peenya Industrial Access Road (Ward 22 - Industrial)</option>
                 </select>
               </div>
-              <button type="button" class="btn-action-sm" id="btn-use-gps" onclick="IssueDetection.useCurrentLocation()" style="white-space: nowrap; height: 42px; background: rgba(56, 189, 248, 0.15); border: 1px solid var(--accent-cyan); color: #38bdf8; font-weight: 600;">
+              <button type="button" class="btn-action-sm" id="btn-use-gps" onclick="IssueDetection.useCurrentLocation()" style="white-space: nowrap; height: 44px; color: var(--primary); font-weight: 700;">
                 📍 Use My GPS Location
               </button>
-              <button type="button" class="btn-action-sm" id="btn-pick-map" onclick="IssueDetection.pickLocationOnMap()" style="white-space: nowrap; height: 42px; background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; color: #f59e0b; font-weight: 600;">
+              <button type="button" class="btn-action-sm" id="btn-pick-map" onclick="IssueDetection.pickLocationOnMap()" style="white-space: nowrap; height: 44px; font-weight: 700;">
                 🗺️ Pin on Map
               </button>
             </div>
 
             <!-- GPS Status Banner & Interactive Mini Map Pinpointer -->
-            <div id="gps-status-container" style="display: none; margin-top: 10px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
+            <div id="gps-status-container" style="display: none; margin-top: 10px; background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                  <span id="gps-status-indicator" style="font-size: 0.85rem; font-weight: 600; color: #10b981;">📡 GPS Pinpointed</span>
-                  <span id="gps-accuracy-badge" style="font-size: 0.72rem; background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 2px 8px; border-radius: 4px; font-weight: 600;">±10m</span>
+                  <span id="gps-status-indicator" style="font-size: 0.85rem; font-weight: 700; color: var(--success);">📡 GPS Pinpointed</span>
+                  <span id="gps-accuracy-badge" style="font-size: 0.75rem; background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); padding: 2px 6px; border-radius: var(--radius-sm); font-weight: 700;">±10m</span>
                 </div>
-                <button type="button" onclick="IssueDetection.clearGps()" style="background: none; border: none; color: var(--text-dim); font-size: 0.78rem; cursor: pointer;">
-                  ✕ Reset GPS
+                <button type="button" onclick="IssueDetection.clearGps()" style="background: none; border: none; color: var(--text-dim); font-size: 0.8rem; cursor: pointer;">
+                  ✕ Reset Location
                 </button>
               </div>
 
-              <div id="gps-resolved-address" style="font-size: 0.84rem; color: var(--text-main); margin-bottom: 8px; font-weight: 500;">
-              </div>
+              <div id="gps-resolved-address" style="font-size: 0.85rem; color: var(--text-main); margin-bottom: 8px;"></div>
 
               <!-- Interactive Mini Pinpoint Map -->
-              <div id="gps-mini-map" style="height: 180px; width: 100%; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color);"></div>
-              <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 6px; text-align: center;">
-                💡 <em>Click anywhere on this map or drag the pin to fine-tune the exact defect location.</em>
+              <div id="gps-mini-map" style="height: 180px; width: 100%; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border-color);"></div>
+              <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 6px; text-align: center;">
+                💡 <em>Click anywhere on this map or drag the pin to set the exact defect spot.</em>
               </div>
             </div>
-
-            <span style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px; display: block;">
-              Click <strong>"📍 Use My GPS Location"</strong> to detect your real location automatically, or pick a ward from the dropdown.
-            </span>
           </div>
 
-          <!-- 3. FIELD: SELECT / CONFIRM ISSUE TYPE -->
-          <div style="margin-bottom: 2rem;">
+          <!-- 3. STEP: SHORT DESCRIPTION -->
+          <div class="form-step-container">
             <div class="form-section-label">
               <span class="form-step-badge">3</span>
-              <span>Issue Type <span style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: normal; margin-left: 8px;">(Pre-filled automatically by AI)</span></span>
+              <span>Add Short Description</span>
             </div>
-            <select id="complaint-issue-type" class="form-select" required>
-              <option value="Pothole">🕳️ Pothole</option>
-              <option value="Broken streetlight">💡 Broken Streetlight</option>
-              <option value="Road crack">⚡ Road Crack</option>
-              <option value="Damaged sidewalk">🚶 Damaged Sidewalk</option>
-              <option value="Water leakage">💧 Water Leakage</option>
-              <option value="Garbage accumulation">🗑️ Garbage Accumulation</option>
-              <option value="Damaged public building">🏢 Damaged Public Building</option>
-              <option value="Other infrastructure damage">⚠️ Other Infrastructure Damage</option>
-            </select>
-          </div>
-
-          <!-- 4. FIELD: SHORT DESCRIPTION -->
-          <div style="margin-bottom: 2rem;">
-            <div class="form-section-label">
-              <span class="form-step-badge">4</span>
-              <span>Short Description <span style="font-size: 0.75rem; color: var(--text-dim); font-weight: normal; margin-left: 8px;">(Optional landmark details)</span></span>
-            </div>
-            <textarea id="complaint-description" class="form-textarea" rows="3" placeholder="e.g., Near the bus stop on the left side of the road."></textarea>
+            <textarea id="complaint-description" class="form-textarea" rows="3" placeholder="e.g., Near the bus stop on the left side of the road, opposite the bank."></textarea>
           </div>
 
           <!-- Hidden technical fields populated automatically -->
-          <input type="hidden" id="complaint-severity" value="HIGH">
+          <input type="hidden" id="complaint-issue-type" value="Pothole">
+          <input type="hidden" id="complaint-severity" value="High">
           <input type="hidden" id="complaint-department" value="Roads & Bridges">
+          <input type="hidden" id="complaint-suggested-action" value="Road maintenance required">
 
-          <!-- 5. FIELD: SUBMIT COMPLAINT -->
-          <div>
-            <button type="submit" class="action-btn-primary" id="btn-submit-complaint" style="width: 100%; font-size: 1.15rem; padding: 1rem; font-weight: 800;">
-              <span>🚀</span> Submit Complaint
+          <!-- 4. STEP: SUBMIT -->
+          <div class="form-step-container" style="border-bottom: none; padding-bottom: 0;">
+            <div class="form-section-label">
+              <span class="form-step-badge">4</span>
+              <span>Submit</span>
+            </div>
+            <button type="submit" class="action-btn-primary" id="btn-submit-complaint" style="width: 100%; font-size: 1.1rem; padding: 14px; font-weight: 800;">
+              <span>Submit Complaint</span>
             </button>
-            <p style="text-align: center; font-size: 0.78rem; color: var(--text-dim); margin-top: 10px;">
-              Your complaint will be added to <strong>My Complaints</strong> and appear immediately on <strong>My Map</strong>.
+            <p style="text-align: center; font-size: 0.82rem; color: var(--text-dim); margin-top: 10px;">
+              Your complaint will be registered, assigned a ticket number, and displayed on your map.
             </p>
           </div>
 
@@ -434,395 +440,210 @@
          TAB 2: MY COMPLAINTS (CITIZEN ONLY)
          ========================================================================= -->
     <section class="tab-pane" id="my-complaints-tab" role="tabpanel">
-      <div class="section-header">
+      <div class="card-header" style="border: none; padding: 0; margin-bottom: 1.5rem;">
         <div>
-          <h2 class="section-title">
-            <span>📋</span> My Reported Complaints
-          </h2>
-          <p class="section-desc">
-            Only complaints submitted by your account (<span id="my-complaints-user-name" style="color: #fff; font-weight: 600;">Public Citizen</span>) are displayed here. Your data is protected.
+          <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--civic-dark);">My Reported Complaints</h2>
+          <p style="font-size: 0.9rem; color: var(--text-dim);">
+            Only complaints submitted under your account (<span id="my-complaints-user-name" style="font-weight: 600; color: var(--text-main);">Public Citizen</span>) are displayed here.
           </p>
         </div>
         <div>
-          <button class="btn-action-sm" onclick="App.switchTab('detection-tab')">
+          <button class="action-btn-primary" onclick="App.switchTab('detection-tab')" style="font-size: 0.9rem; padding: 8px 16px;">
             <span>➕</span> Report New Issue
           </button>
         </div>
       </div>
 
-      <!-- Complaints list container -->
-      <div class="my-complaints-container" id="my-complaints-list">
-        <!-- Injected via JavaScript -->
-        <div class="empty-state-box">
-          <div class="empty-state-icon">📋</div>
-          <div class="empty-state-title">Loading your complaints...</div>
-        </div>
+      <div class="complaints-table-container">
+        <table class="complaints-table" id="my-complaints-table">
+          <thead>
+            <tr>
+              <th>Ticket #</th>
+              <th>Photo</th>
+              <th>Issue Detected</th>
+              <th>Severity</th>
+              <th>Location</th>
+              <th>Reported On</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="my-complaints-tbody">
+            <tr>
+              <td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-dim);">
+                No complaints recorded yet. Use the "Report Issue" tab to submit your first report.
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
     <!-- =========================================================================
-         TAB 3: MY MAP (CITIZEN ONLY)
+         TAB 3: MY MAP (CITIZEN ONLY MAP VIEW)
          ========================================================================= -->
     <section class="tab-pane" id="my-map-tab" role="tabpanel">
-      <div class="my-map-header-bar">
-          <div>
-            <h2 class="section-title">
-              <span>🗺️</span> My Infrastructure Map
-            </h2>
-            <p class="section-desc">
-              Showing only complaints reported by you. Other citizens' complaints are kept private.
-            </p>
-          </div>
-
-          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            <button type="button" class="btn-action-sm" id="btn-toggle-my-map-hotspots" onclick="HotspotMap.toggleCitizenHotspotOverlay()" style="background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; color: #f59e0b; font-weight: 600;">
-              <span>🔥</span> Overlay AI Hotspot Clusters
-            </button>
-            <button type="button" class="btn-action-sm" onclick="App.switchTab('city-map-tab')" style="background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-main); font-weight: 600;">
-              <span>🗺️</span> View Full City Map →
-            </button>
-            <div class="my-reports-counter-badge" id="my-map-counter-badge">
-              <span>📋</span>
-              <span>My Reports: <strong id="my-map-reports-count">0</strong></span>
-            </div>
-          </div>
+      <div class="card-header" style="border: none; padding: 0; margin-bottom: 1.5rem;">
+        <div>
+          <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--civic-dark);">My Personal Map</h2>
+          <p style="font-size: 0.9rem; color: var(--text-dim);">
+            Interactive map displaying only the infrastructure issues you have reported (<span id="my-map-reports-count" style="font-weight: 700; color: var(--primary);">0</span> complaints).
+          </p>
         </div>
-        <div id="my-map-empty-banner" style="display: none; padding: 12px 16px; background: rgba(56, 189, 248, 0.08); border-radius: 6px; margin-bottom: 12px; font-size: 0.84rem; color: var(--text-muted); border-left: 3px solid var(--accent-cyan);">
-          ℹ️ <strong>My Reports: 0.</strong> You haven't reported any infrastructure defects yet. Your personal complaints will appear here when submitted. Click <strong><a href="javascript:void(0)" onclick="App.switchTab('city-map-tab')" style="color: var(--accent-cyan); font-weight: 600;">AI Hotspot Map</a></strong> to explore city-wide clusters!
+        <div>
+          <button class="action-btn-primary" onclick="App.switchTab('detection-tab')" style="font-size: 0.9rem; padding: 8px 16px;">
+            <span>➕</span> Report New Issue
+          </button>
         </div>
+      </div>
 
-      <!-- Map Card -->
-      <div class="card" style="padding: 0; overflow: hidden; position: relative;">
-        <!-- Leaflet Map Container -->
-        <div id="infrastructure-map" style="height: 580px; width: 100%;"></div>
-
-        <!-- Map floating help legend -->
-        <div style="position: absolute; bottom: 20px; left: 20px; z-index: 1000; background: rgba(15, 23, 42, 0.9); border: 1px solid var(--border-color); padding: 8px 14px; border-radius: var(--radius-md); font-size: 0.78rem; backdrop-filter: blur(8px);">
-          <div style="font-weight: 700; color: #fff; margin-bottom: 4px;">My Reported Locations</div>
-          <div style="color: var(--text-muted);">Click any marker to view issue type, status, and AI priority.</div>
-        </div>
+      <div class="card" style="padding: 0; overflow: hidden;">
+        <div id="my-citizen-map" style="height: 540px; width: 100%;"></div>
       </div>
     </section>
 
     <!-- =========================================================================
-         TAB 4: TRACK COMPLAINT
+         TAB 4: TRACK STATUS (CITIZEN WORKFLOW TRACKER)
          ========================================================================= -->
     <section class="tab-pane" id="track-tab" role="tabpanel">
-      <div class="section-header" style="max-width: 800px; margin: 0 auto 1.5rem;">
-        <div>
-          <h2 class="section-title">
-            <span>🔍</span> Track Complaint Status
-          </h2>
-          <p class="section-desc">
-            Enter your complaint ticket number to view the repair stage: REPORTED → ASSIGNED → IN PROGRESS → COMPLETED.
-          </p>
+      <div style="max-width: 760px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+          <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--civic-dark);">Track Complaint Status</h2>
+          <p style="font-size: 0.95rem; color: var(--text-dim);">Enter your complaint ticket number to view live maintenance progress.</p>
         </div>
-      </div>
 
-      <div class="simple-form-card" style="margin-bottom: 2rem;">
-        <div style="display: flex; gap: 8px;">
-          <input type="text" id="track-ticket-input" class="form-input" placeholder="Enter Complaint Number (e.g. CMP-2026-0901, CMP-2026-0021)..." style="font-size: 1rem;">
-          <button type="button" class="action-btn-primary" onclick="App.trackComplaintFromInput()" style="white-space: nowrap;">
-            <span>🔍</span> Track Status
-          </button>
+        <div class="card" style="margin-bottom: 2rem;">
+          <form id="track-form" onsubmit="App.handleTrackSubmit(event)" style="display: flex; gap: 10px;">
+            <input type="text" id="track-input" class="form-input" placeholder="e.g., CMP-2026-0001" style="font-weight: 600;" required>
+            <button type="submit" class="action-btn-primary" style="white-space: nowrap;">Track Status</button>
+          </form>
         </div>
-      </div>
 
-      <!-- Tracking Result Container -->
-      <div id="track-result-container" style="max-width: 800px; margin: 0 auto; display: none;">
-        <!-- Injected via JavaScript -->
+        <div id="track-result-container" style="display: none;"></div>
       </div>
     </section>
 
     <!-- =========================================================================
-         TAB 5: MY PROFILE
+         TAB 5: USER PROFILE
          ========================================================================= -->
     <section class="tab-pane" id="profile-tab" role="tabpanel">
-      <div class="section-header" style="max-width: 800px; margin: 0 auto 1.5rem;">
-        <div>
-          <h2 class="section-title">
-            <span>👤</span> My Citizen Profile
-          </h2>
-          <p class="section-desc">
-            Your registered identity and citizen reporting statistics.
-          </p>
-        </div>
-      </div>
-
-      <div class="simple-form-card">
-        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color);">
-          <div style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #2563eb, #06b6d4); display: flex; align-items: center; justify-content: center; font-size: 2rem;">
-            👤
+      <div style="max-width: 600px; margin: 0 auto;">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">User Account Profile</h3>
           </div>
-          <div>
-            <h3 style="font-size: 1.3rem; color: #fff; margin-bottom: 4px;" id="profile-name">Public Citizen</h3>
-            <div style="font-size: 0.85rem; color: var(--accent-cyan);" id="profile-role">Registered Public Citizen</div>
+          <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.95rem;">
+            <div><strong>Name:</strong> <span id="profile-name">Public Citizen</span></div>
+            <div><strong>Email:</strong> <span id="profile-email">citizen@nagardrishti.gov</span></div>
+            <div><strong>Phone:</strong> <span id="profile-phone">+91 98765 00000</span></div>
+            <div><strong>Account Type:</strong> <span id="profile-role">Registered Public Citizen</span></div>
+            <div><strong>Total Complaints Reported:</strong> <span id="profile-count" style="font-weight: 800; color: var(--primary);">0</span></div>
           </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-          <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-            <div style="font-size: 0.75rem; color: var(--text-dim);">Email Address</div>
-            <div style="font-weight: 600; color: #fff; margin-top: 4px;" id="profile-email">citizen@nagardrishti.gov</div>
-          </div>
-          <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-            <div style="font-size: 0.75rem; color: var(--text-dim);">Contact Phone</div>
-            <div style="font-weight: 600; color: #fff; margin-top: 4px;" id="profile-phone">+91 98765 00000</div>
-          </div>
-          <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-            <div style="font-size: 0.75rem; color: var(--text-dim);">Complaints Submitted</div>
-            <div style="font-weight: 700; color: #38bdf8; font-size: 1.1rem; margin-top: 4px;" id="profile-count">0</div>
-          </div>
-        </div>
-
-        <div style="padding-top: 1rem; border-top: 1px solid var(--border-color); display: flex; gap: 10px; flex-wrap: wrap;">
-          <button type="button" class="btn-action-sm" onclick="App.openRegisterModal()">
-            <span>➕</span> Register as a New Citizen (Starts with 0)
-          </button>
-          <button type="button" class="btn-action-sm" onclick="App.switchUser(1)" style="border-color: #f59e0b; color: #f59e0b;">
-            <span>🛡️</span> Switch to Municipal Administrator
-          </button>
         </div>
       </div>
     </section>
 
     <!-- =========================================================================
-         TAB 6: ADMIN DASHBOARD (ADMINISTRATOR ONLY)
+         ADMIN TABS (Visible in Admin Mode)
          ========================================================================= -->
+    <!-- Admin Dashboard Tab -->
     <section class="tab-pane" id="admin-tab" role="tabpanel">
-      <div class="section-header">
+      <div class="card-header" style="border: none; padding: 0; margin-bottom: 1.5rem;">
         <div>
-          <h2 class="section-title">
-            <span>📊</span> Municipal Administrator Command Dashboard
-          </h2>
-          <p class="section-desc">
-            Civic infrastructure telemetry, AI priority triage, and maintenance team dispatch.
-          </p>
-        </div>
-        <div style="display: flex; gap: 8px;">
-          <button class="btn-action-sm" onclick="App.switchTab('home-tab')">
-            <span>👁️</span> Switch to Citizen View
-          </button>
+          <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--civic-dark);">Municipal Administrator Dashboard</h2>
+          <p style="font-size: 0.9rem; color: var(--text-dim);">City-wide infrastructure health, defect queues, priority scoring, and crew dispatching.</p>
         </div>
       </div>
 
-      <!-- KPI Summary Cards -->
-      <div class="stats-grid">
+      <div class="stats-grid" id="admin-summary-grid">
         <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-title">Total Assets</span>
-            <div class="stat-icon blue"><span>🏗️</span></div>
-          </div>
-          <div class="stat-value" id="kpi-total-assets">8</div>
-          <div class="stat-footer"><span class="stat-meta">Tracked municipal assets</span></div>
+          <div class="stat-header"><span class="stat-title">Active Complaints</span><div class="stat-icon blue"><span>📋</span></div></div>
+          <div class="stat-value" id="admin-stat-active">0</div>
         </div>
-
         <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-title">Active Complaints</span>
-            <div class="stat-icon amber"><span>⏳</span></div>
-          </div>
-          <div class="stat-value" id="kpi-active-complaints">5</div>
-          <div class="stat-footer"><span class="stat-meta">Pending resolution</span></div>
+          <div class="stat-header"><span class="stat-title">Critical Hazards</span><div class="stat-icon orange"><span>⚠️</span></div></div>
+          <div class="stat-value" id="admin-stat-critical">0</div>
         </div>
-
         <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-title">Critical Complaints</span>
-            <div class="stat-icon red"><span>🚨</span></div>
-          </div>
-          <div class="stat-value" id="kpi-critical-complaints">2</div>
-          <div class="stat-footer"><span class="stat-meta">Urgent safety hazards</span></div>
+          <div class="stat-header"><span class="stat-title">AI-Assisted Reports</span><div class="stat-icon green"><span>🤖</span></div></div>
+          <div class="stat-value" id="admin-stat-ai">0</div>
         </div>
-
         <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-title">AI-Detected Complaints</span>
-            <div class="stat-icon cyan"><span>🤖</span></div>
-          </div>
-          <div class="stat-value" id="kpi-ai-detected">21</div>
-          <div class="stat-footer"><span class="stat-meta">Vision AI assisted</span></div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-title">Maintenance In Progress</span>
-            <div class="stat-icon purple"><span>👷</span></div>
-          </div>
-          <div class="stat-value" id="kpi-in-progress">1</div>
-          <div class="stat-footer"><span class="stat-meta">Dispatched crews</span></div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-title">Completed Maintenance</span>
-            <div class="stat-icon green"><span>✅</span></div>
-          </div>
-          <div class="stat-value" id="kpi-completed">16</div>
-          <div class="stat-footer"><span class="stat-meta">Verified restored</span></div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-header">
-            <span class="stat-title">Infrastructure Health</span>
-            <div class="stat-icon green"><span>📈</span></div>
-          </div>
-          <div class="stat-value" id="kpi-health-index">88%</div>
-          <div class="stat-footer"><span class="stat-meta">Assets in Good/Fair condition</span></div>
-        </div>
-      </div>
-
-      <!-- Top Hotspots & Preventive Maintenance Recommendations -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
-        <div class="card">
-          <div class="card-header">
-            <h3 class="card-title"><span>⚠️</span> Top Infrastructure Hotspots</h3>
-            <span style="font-size: 0.75rem; color: var(--text-dim);">Clustered recurring defect areas</span>
-          </div>
-          <div id="top-hotspots-summary-list">
-            <!-- Injected via JS -->
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <h3 class="card-title"><span>🛡️</span> Preventive Maintenance Recommendations</h3>
-            <span style="font-size: 0.75rem; color: var(--text-dim);">AI Early Warning Indicators</span>
-          </div>
-          <div id="preventive-recommendations-list">
-            <!-- Injected via JS -->
-          </div>
+          <div class="stat-header"><span class="stat-title">City Health Index</span><div class="stat-icon cyan"><span>🏥</span></div></div>
+          <div class="stat-value" id="admin-stat-health">100%</div>
         </div>
       </div>
     </section>
 
-    <!-- =========================================================================
-         TAB 7: ALL COMPLAINTS PIPELINE (ADMINISTRATOR ONLY)
-         ========================================================================= -->
+    <!-- Admin All Complaints Pipeline Tab -->
     <section class="tab-pane" id="all-complaints-tab" role="tabpanel">
-      <div class="section-header">
+      <div class="card-header" style="border: none; padding: 0; margin-bottom: 1.5rem;">
         <div>
-          <h2 class="section-title">
-            <span>📋</span> Complete Complaints Management Pipeline
-          </h2>
-          <p class="section-desc">
-            Administrator triage table: Assign maintenance teams, update workflow status, upload completion photos with AI Before/After comparison, and override AI priorities.
-          </p>
-        </div>
-        <div style="display: flex; gap: 8px;">
-          <button class="btn-action-sm" onclick="AdminDashboard.openWeightsModal()">
-            <span>⚙️</span> Configure AI Weights
-          </button>
+          <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--civic-dark);">All Complaints Pipeline</h2>
+          <p style="font-size: 0.9rem; color: var(--text-dim);">Review, assign maintenance crews, and correct AI-detected issues if required.</p>
         </div>
       </div>
 
-      <!-- Table Card -->
-      <div class="card">
-        <div class="table-responsive">
-          <table class="data-table" id="admin-complaints-table">
-            <thead>
-              <tr>
-                <th>Ticket ID</th>
-                <th>Photo</th>
-                <th>Issue Type</th>
-                <th>AI Priority</th>
-                <th>Status</th>
-                <th>Location</th>
-                <th>Assigned Crew</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="complaints-table-body">
-              <!-- Injected via JS -->
-            </tbody>
-          </table>
-        </div>
+      <div class="complaints-table-container">
+        <table class="complaints-table" id="admin-complaints-table">
+          <thead>
+            <tr>
+              <th>Ticket #</th>
+              <th>Citizen</th>
+              <th>Issue Type</th>
+              <th>Severity</th>
+              <th>AI Priority</th>
+              <th>Department</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="admin-complaints-tbody">
+            <!-- Populated via admin-dashboard.js -->
+          </tbody>
+        </table>
       </div>
     </section>
 
-    <!-- =========================================================================
-         TAB 8: CITY-WIDE HOTSPOT MAP (ADMINISTRATOR ONLY)
-         ========================================================================= -->
+    <!-- AI Hotspot Map Tab -->
     <section class="tab-pane" id="city-map-tab" role="tabpanel">
-        <div class="section-header" style="flex-direction: column; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem;">
-          <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; flex-wrap: wrap; gap: 12px;">
-            <div>
-              <h2 class="section-title">
-                <span>🔥</span> NagarDristi AI- AI-Powered Vision for Better Cities — Maintenance Hotspot Map
-              </h2>
-              <p class="section-desc">
-                Geospatial AI clustering of recurring defect corridors, critical infrastructure risk zones, and preventive maintenance hotspots.
-              </p>
-            </div>
-
-            <!-- Hotspot Metrics -->
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-              <div style="background: var(--bg-surface); border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 6px; font-size: 0.82rem;">
-                🔥 Hotspot Clusters: <strong id="hotspot-stat-total-clusters" style="color: #f59e0b;">4</strong>
-              </div>
-              <div style="background: var(--bg-surface); border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 6px; font-size: 0.82rem;">
-                🚨 Critical Risk: <strong id="hotspot-stat-critical" style="color: #ef4444;">2</strong>
-              </div>
-              <div style="background: var(--bg-surface); border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 6px; font-size: 0.82rem;">
-                📍 Active Incidents: <strong id="hotspot-stat-incidents" style="color: #38bdf8;">20</strong>
-              </div>
-            </div>
-          </div>
-
-          <!-- Hotspot Filters & Legend -->
-          <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; flex-wrap: wrap; gap: 10px; background: rgba(255,255,255,0.03); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);">
-            <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
-              <span style="font-size: 0.78rem; color: var(--text-dim); margin-right: 4px;">Filter By:</span>
-              <button type="button" class="btn-action-sm btn-hotspot-filter active" data-filter="ALL" onclick="HotspotMap.filterCityMap('ALL')">All Hotspots</button>
-              <button type="button" class="btn-action-sm btn-hotspot-filter" data-filter="CRITICAL" onclick="HotspotMap.filterCityMap('CRITICAL')">🔴 Critical Risk Only</button>
-              <button type="button" class="btn-action-sm btn-hotspot-filter" data-filter="POTHOLE" onclick="HotspotMap.filterCityMap('POTHOLE')">🕳️ Potholes</button>
-              <button type="button" class="btn-action-sm btn-hotspot-filter" data-filter="WATER" onclick="HotspotMap.filterCityMap('WATER')">💧 Water Leakage</button>
-              <button type="button" class="btn-action-sm btn-hotspot-filter" data-filter="LIGHT" onclick="HotspotMap.filterCityMap('LIGHT')">💡 Streetlights</button>
-            </div>
-
-            <!-- Legend -->
-            <div style="display: flex; gap: 12px; font-size: 0.75rem; color: var(--text-dim); align-items: center;">
-              <span><strong style="color: #ef4444;">●</strong> Critical (Urgent)</span>
-              <span><strong style="color: #f59e0b;">●</strong> High Priority</span>
-              <span><strong style="color: #38bdf8;">●</strong> Moderate/Watch</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="card" style="padding: 0; overflow: hidden; position: relative; border-radius: 8px;">
-          <div id="city-wide-map" style="height: 600px; width: 100%;"></div>
-        </div>
-      </section>
-
-    <!-- =========================================================================
-         TAB 9: ASSETS REGISTRY (ADMINISTRATOR ONLY)
-         ========================================================================= -->
-    <section class="tab-pane" id="assets-tab" role="tabpanel">
-      <div class="section-header">
+      <div class="card-header" style="border: none; padding: 0; margin-bottom: 1.5rem;">
         <div>
-          <h2 class="section-title"><span>🏗️</span> Municipal Infrastructure Asset Registry</h2>
-          <p class="section-desc">Official registry of tracked roads, streetlights, water pipelines, and civic structures.</p>
+          <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--civic-dark);">City Infrastructure Hotspot Map</h2>
+          <p style="font-size: 0.9rem; color: var(--text-dim);">Geographic density analysis and predictive maintenance clusters.</p>
         </div>
       </div>
 
-      <div class="card">
-        <div class="table-responsive">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Asset Tag</th>
-                <th>Asset Name</th>
-                <th>Type</th>
-                <th>Condition</th>
-                <th>Importance</th>
-                <th>Last Inspection</th>
-              </tr>
-            </thead>
-            <tbody id="assets-table-body">
-              <!-- Populated via JS -->
-            </tbody>
-          </table>
+      <div class="card" style="padding: 0; overflow: hidden;">
+        <div id="city-hotspot-map" style="height: 540px; width: 100%;"></div>
+      </div>
+    </section>
+
+    <!-- Assets Tab -->
+    <section class="tab-pane" id="assets-tab" role="tabpanel">
+      <div class="card-header" style="border: none; padding: 0; margin-bottom: 1.5rem;">
+        <div>
+          <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--civic-dark);">Public Infrastructure Asset Inventory</h2>
+          <p style="font-size: 0.9rem; color: var(--text-dim);">Registered municipal assets, condition ratings, and inspection history.</p>
         </div>
+      </div>
+
+      <div class="complaints-table-container">
+        <table class="complaints-table" id="assets-table">
+          <thead>
+            <tr>
+              <th>Asset Tag</th>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Location</th>
+              <th>Condition</th>
+              <th>Last Inspection</th>
+            </tr>
+          </thead>
+          <tbody id="assets-tbody">
+            <!-- Populated via app.js -->
+          </tbody>
+        </table>
       </div>
     </section>
 
@@ -831,275 +652,189 @@
   <!-- =========================================================================
        MODALS
        ========================================================================= -->
-
-  <!-- 1. Register New Citizen Modal -->
+  <!-- 1. Citizen Registration Modal -->
   <div class="modal-overlay" id="register-modal">
-    <div class="modal-dialog">
+    <div class="modal-card">
       <div class="modal-header">
-        <h3 class="modal-title"><span>📝</span> Register as New Citizen</h3>
-        <button class="modal-close-btn" type="button" onclick="App.closeModals()">&times;</button>
+        <h3 class="modal-title">Register New Citizen Account</h3>
+        <button type="button" class="modal-close" onclick="App.closeModals()">✕</button>
       </div>
-      <div>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
-          Register a new citizen account. As a new user, your complaint count starts at <strong>0</strong> and your map starts empty.
-        </p>
-
-        <form id="register-citizen-form" onsubmit="App.handleRegisterSubmit(event)">
+      <form onsubmit="App.handleRegisterSubmit(event)">
+        <div class="modal-body">
           <div class="form-group">
-            <label class="form-label" for="reg-name">Full Name <span class="req">*</span></label>
-            <input type="text" id="reg-name" class="form-input" placeholder="e.g., Ananya Sen" required>
+            <label class="form-label">Full Name *</label>
+            <input type="text" id="reg-name" class="form-input" placeholder="e.g. Ramesh Kumar" required>
           </div>
-
           <div class="form-group">
-            <label class="form-label" for="reg-email">Email Address <span class="req">*</span></label>
-            <input type="email" id="reg-email" class="form-input" placeholder="e.g., ananya.sen@example.com" required>
+            <label class="form-label">Email Address (Optional)</label>
+            <input type="email" id="reg-email" class="form-input" placeholder="e.g. ramesh@example.com">
           </div>
-
           <div class="form-group">
-            <label class="form-label" for="reg-phone">Phone Number</label>
-            <input type="tel" id="reg-phone" class="form-input" placeholder="e.g., +91 98765 12345">
+            <label class="form-label">Mobile Phone Number (Optional)</label>
+            <input type="tel" id="reg-phone" class="form-input" placeholder="e.g. +91 98765 43210">
           </div>
-
-          <button type="submit" class="action-btn-primary" style="width: 100%; margin-top: 10px;">
-            <span>✅</span> Create Account (Starts with 0 Complaints)
-          </button>
-        </form>
-      </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-action-sm" onclick="App.closeModals()">Cancel</button>
+          <button type="submit" class="action-btn-primary">Register Account</button>
+        </div>
+      </form>
     </div>
   </div>
 
-  <!-- 2. AI Priority Explanation Modal -->
-  <div class="modal-overlay" id="priority-modal">
-    <div class="modal-dialog">
+  <!-- 2. Admin Assign Crew Modal -->
+  <div class="modal-overlay" id="admin-assign-modal">
+    <div class="modal-card">
       <div class="modal-header">
-        <h3 class="modal-title"><span>🤖</span> AI Priority Engine Explanation</h3>
-        <button class="modal-close-btn" type="button" onclick="App.closeModals()">&times;</button>
+        <h3 class="modal-title">Assign Maintenance Crew</h3>
+        <button type="button" class="modal-close" onclick="App.closeModals()">✕</button>
       </div>
-      <div id="priority-modal-content">
-        <!-- Injected via JS -->
-      </div>
+      <form onsubmit="AdminDashboard.handleAssignSubmit(event)">
+        <input type="hidden" id="assign-complaint-id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Select Maintenance Team *</label>
+            <select id="assign-team-select" class="form-select" required>
+              <option value="Roads & Pavement Emergency Crew A">Roads & Pavement Emergency Crew A</option>
+              <option value="Electrical Luminaire Repair Team 2">Electrical Luminaire Repair Team 2</option>
+              <option value="Waterline & Sewerage Fast Response Squad">Waterline & Sewerage Fast Response Squad</option>
+              <option value="Public Works & Sanitation Rapid Team">Public Works & Sanitation Rapid Team</option>
+              <option value="Structural & Masonry Maintenance Division">Structural & Masonry Maintenance Division</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Scheduled Repair Date</label>
+            <input type="date" id="assign-scheduled-date" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Instructions / Dispatch Notes</label>
+            <textarea id="assign-notes" class="form-textarea" rows="2" placeholder="e.g. Inspect foundation and patch with hot bitumen mix."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-action-sm" onclick="App.closeModals()">Cancel</button>
+          <button type="submit" class="action-btn-primary">Dispatch Crew</button>
+        </div>
+      </form>
     </div>
   </div>
 
-  <!-- 3. Administrator Priority Override Modal -->
-  <div class="modal-overlay" id="override-modal">
-    <div class="modal-dialog">
+  <!-- 3. Admin Correct Issue Modal (Requirement 1: Allow administrator to correct detected issue) -->
+  <div class="modal-overlay" id="admin-correct-modal">
+    <div class="modal-card">
       <div class="modal-header">
-        <h3 class="modal-title"><span>⚖️</span> Administrator Priority Override</h3>
-        <button class="modal-close-btn" type="button" onclick="App.closeModals()">&times;</button>
+        <h3 class="modal-title">Correct Detected Issue (Admin Override)</h3>
+        <button type="button" class="modal-close" onclick="App.closeModals()">✕</button>
       </div>
-      <div>
-        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
-          Final maintenance assignments remain under administrator authority. Provide a justification for changing the automated priority.
-        </p>
-
-        <div class="form-group">
-          <label class="form-label" for="override-level">Override Priority Level</label>
-          <select id="override-level" class="form-select">
-            <option value="CRITICAL">CRITICAL (Immediate response)</option>
-            <option value="HIGH">HIGH (Within 24 hours)</option>
-            <option value="MEDIUM">MEDIUM (Standard schedule)</option>
-            <option value="LOW">LOW (Deferred)</option>
-          </select>
+      <form onsubmit="AdminDashboard.handleCorrectIssueSubmit(event)">
+        <input type="hidden" id="correct-complaint-id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Correct Issue Type *</label>
+            <select id="correct-issue-type" class="form-select" required>
+              <option value="Pothole">🕳️ Pothole</option>
+              <option value="Road crack">⚡ Road crack</option>
+              <option value="Broken streetlight">💡 Broken streetlight</option>
+              <option value="Damaged footpath">🚶 Damaged footpath</option>
+              <option value="Garbage/waste">🗑️ Garbage/waste</option>
+              <option value="Water leakage">💧 Water leakage</option>
+              <option value="Damaged drainage">🚰 Damaged drainage</option>
+              <option value="Broken public infrastructure">🏢 Broken public infrastructure</option>
+              <option value="Damaged road sign">🛑 Damaged road sign</option>
+              <option value="Other visible infrastructure damage">⚠️ Other visible infrastructure damage</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Severity Level</label>
+            <select id="correct-severity" class="form-select">
+              <option value="LOW">LOW</option>
+              <option value="MEDIUM">MEDIUM</option>
+              <option value="HIGH">HIGH</option>
+              <option value="CRITICAL">CRITICAL</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Responsible Department</label>
+            <select id="correct-department" class="form-select">
+              <option value="Roads & Bridges">Roads & Bridges</option>
+              <option value="Electrical & Lighting">Electrical & Lighting</option>
+              <option value="Water & Sewerage">Water & Sewerage</option>
+              <option value="Public Works & Sanitation">Public Works & Sanitation</option>
+              <option value="Traffic & Safety">Traffic & Safety</option>
+              <option value="Municipal Works">Municipal Works</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Reason for Correction *</label>
+            <input type="text" id="correct-reason" class="form-input" placeholder="e.g. Visual inspection reveals broken stormwater drain rather than road crack." required>
+          </div>
         </div>
-
-        <div class="form-group">
-          <label class="form-label" for="override-score">Manual Priority Score (0-100)</label>
-          <input type="number" id="override-score" class="form-input" min="0" max="100" value="85">
+        <div class="modal-footer">
+          <button type="button" class="btn-action-sm" onclick="App.closeModals()">Cancel</button>
+          <button type="submit" class="action-btn-primary">Save Correction</button>
         </div>
-
-        <div class="form-group">
-          <label class="form-label" for="override-reason">Justification / Reason <span class="req">*</span></label>
-          <textarea id="override-reason" class="form-textarea" rows="3" placeholder="e.g., Upcoming VIP transit route, hospital access lane, public safety alert..."></textarea>
-        </div>
-
-        <button type="button" class="action-btn-primary" onclick="AdminDashboard.submitOverride()">
-          Save Priority Override
-        </button>
-      </div>
+      </form>
     </div>
   </div>
 
-  <!-- 4. Assign Maintenance Team Modal -->
-  <div class="modal-overlay" id="assign-modal">
-    <div class="modal-dialog">
+  <!-- 4. Admin Mark Completed Modal -->
+  <div class="modal-overlay" id="admin-complete-modal">
+    <div class="modal-card">
       <div class="modal-header">
-        <h3 class="modal-title"><span>👷</span> Assign Maintenance Crew</h3>
-        <button class="modal-close-btn" type="button" onclick="App.closeModals()">&times;</button>
+        <h3 class="modal-title">Record Work Completion & Verification Photo</h3>
+        <button type="button" class="modal-close" onclick="App.closeModals()">✕</button>
       </div>
-      <div>
-        <div class="form-group">
-          <label class="form-label" for="assign-team-name">Maintenance Team Name <span class="req">*</span></label>
-          <input type="text" id="assign-team-name" class="form-input" value="Metro Quick-Response Team Alpha">
+      <form onsubmit="AdminDashboard.handleCompleteSubmit(event)">
+        <input type="hidden" id="complete-complaint-id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Upload Completion Verification Photo</label>
+            <input type="file" id="complete-image-input" accept="image/*" class="form-input">
+            <div style="margin-top: 6px; font-size: 0.78rem; color: var(--text-dim);">
+              Or use sample repaired photo:
+              <button type="button" class="sample-chip" onclick="AdminDashboard.useSampleRepaired()" style="margin-left: 6px;">
+                ✅ Sample Repaired Photo
+              </button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Work Action Performed</label>
+            <input type="text" id="complete-action-taken" class="form-input" placeholder="e.g. Cold asphalt compaction and road surface leveling completed." required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Performed By</label>
+            <input type="text" id="complete-performed-by" class="form-input" value="Municipal Road Crew 3">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cost Estimate (₹ INR)</label>
+            <input type="number" id="complete-cost" class="form-input" value="8500">
+          </div>
         </div>
-
-        <div class="form-group">
-          <label class="form-label" for="assign-scheduled-date">Scheduled Dispatch Date</label>
-          <input type="date" id="assign-scheduled-date" class="form-input">
+        <div class="modal-footer">
+          <button type="button" class="btn-action-sm" onclick="App.closeModals()">Cancel</button>
+          <button type="submit" class="action-btn-primary">Verify & Complete</button>
         </div>
-
-        <div class="form-group">
-          <label class="form-label" for="assign-notes">Special Instructions for Crew</label>
-          <textarea id="assign-notes" class="form-textarea" rows="3" placeholder="e.g., Cordon live traffic, use rapid-setting cold bitumen mix..."></textarea>
-        </div>
-
-        <button type="button" class="action-btn-primary" onclick="AdminDashboard.submitAssignment()">
-          Confirm Assignment (Status → ASSIGNED)
-        </button>
-      </div>
+      </form>
     </div>
   </div>
 
-  <!-- 5. Complete Maintenance Modal -->
-  <div class="modal-overlay" id="complete-modal">
-    <div class="modal-dialog">
-      <div class="modal-header">
-        <h3 class="modal-title"><span>✅</span> Complete Maintenance & Upload Completion Image</h3>
-        <button class="modal-close-btn" type="button" onclick="App.closeModals()">&times;</button>
-      </div>
-      <div>
-        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
-          Upload completion verification photo to enable AI Before/After comparative evaluation and update asset records.
-        </p>
-
-        <div class="form-group">
-          <label class="form-label" for="complete-action-taken">Restoration Action Taken</label>
-          <input type="text" id="complete-action-taken" class="form-input" value="Asphalt milling, cavity filling, and compaction completed.">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="complete-performed-by">Inspected & Certified By</label>
-          <input type="text" id="complete-performed-by" class="form-input" value="Er. Anita Desai (Municipal Quality Officer)">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="complete-image-file">Upload Completion Verification Photo</label>
-          <input type="file" id="complete-image-file" class="form-input" accept="image/jpeg,image/png">
-        </div>
-
-        <button type="button" class="action-btn-primary" onclick="AdminDashboard.submitCompletion()">
-          Verify & Mark COMPLETED
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 6. Configurable Priority Weights Modal -->
-  <div class="modal-overlay" id="weights-modal">
-    <div class="modal-dialog">
-      <div class="modal-header">
-        <h3 class="modal-title"><span>⚖️</span> Configurable AI Priority Engine Weights</h3>
-        <button class="modal-close-btn" type="button" onclick="App.closeModals()">&times;</button>
-      </div>
-      <div>
-        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
-          Adjust the relative weight factors used by the Priority Engine. The system automatically normalizes total weights to 100%.
-        </p>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="weight-severity">Severity Factor (0-1.0)</label>
-            <input type="number" step="0.05" id="weight-severity" class="form-input" value="0.20">
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="weight-safety">Safety Risk Factor (0-1.0)</label>
-            <input type="number" step="0.05" id="weight-safety" class="form-input" value="0.25">
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="weight-impact">Public Impact Factor (0-1.0)</label>
-            <input type="number" step="0.05" id="weight-impact" class="form-input" value="0.15">
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="weight-asset">Asset Importance (0-1.0)</label>
-            <input type="number" step="0.05" id="weight-asset" class="form-input" value="0.10">
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="weight-location">Location Importance (0-1.0)</label>
-            <input type="number" step="0.05" id="weight-location" class="form-input" value="0.10">
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="weight-prev">Previous Complaints (0-1.0)</label>
-            <input type="number" step="0.05" id="weight-prev" class="form-input" value="0.10">
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="weight-condition">Asset Condition (0-1.0)</label>
-            <input type="number" step="0.05" id="weight-condition" class="form-input" value="0.05">
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="weight-waiting">Waiting Response Time (0-1.0)</label>
-            <input type="number" step="0.05" id="weight-waiting" class="form-input" value="0.05">
-          </div>
-        </div>
-
-        <button type="button" class="action-btn-primary" id="btn-save-weights">
-          Save & Normalize AI Weights
-        </button>
-      </div>
-    </div>
-  </div>
-
-  
-  <!-- Gemini Vision Key Modal -->
-  <div class="modal-overlay" id="gemini-key-modal" style="display: none;">
-    <div class="modal-dialog">
-      <div class="modal-header">
-        <h3 class="modal-title"><span>⚙️</span> Configure Google Gemini Live Vision AI</h3>
-        <button class="modal-close-btn" type="button" onclick="IssueDetection.closeApiKeyModal()">&times;</button>
-      </div>
-      <div>
-        <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 1rem;">
-          NagarDristi AI includes a built-in Neural Vision Classifier. You can optionally connect a free Google Gemini 1.5/2.0 API key for live multimodal cloud recognition.
-        </p>
-
-        <div class="form-group">
-          <label class="form-label" for="input-gemini-key">Google Gemini API Key</label>
-          <input type="password" id="input-gemini-key" class="form-input" placeholder="AIzaSy...">
-          <span style="font-size: 0.74rem; color: var(--text-dim); margin-top: 4px; display: block;">
-            Get a free key from <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--accent-cyan);">Google AI Studio</a>. Saved locally in your browser.
-          </span>
-        </div>
-
-        <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.5rem;">
-          <button type="button" class="btn-action-sm" onclick="IssueDetection.clearApiKey()" style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid #ef4444;">
-            Remove Key
-          </button>
-          <button type="button" class="action-btn-primary" onclick="IssueDetection.saveApiKey()">
-            Save & Activate Live Gemini
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Notification Toast Container -->
-  <div class="toast-container" id="toast-container"></div>
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
 
   <!-- Footer -->
-  <footer class="footer-main">
-    <div>NagarDristi AI- AI-Powered Vision for Better Cities &copy; 2026 Metropolitan Municipal Corporation</div>
-    <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 4px;">
-      Privacy Protected • Transparent AI Scoring • Google DeepMind & Antigravity IDE Engine
+  <footer class="gov-footer">
+    <div><strong>NagarDristi AI</strong> — Metropolitan Public Infrastructure Asset Monitoring System</div>
+    <div style="margin-top: 4px; font-size: 0.78rem; color: #94a3b8;">
+      Civic authority maintenance and citizen complaint grievance resolution portal.
     </div>
   </footer>
 
-  <!-- Leaflet Map JS (CDN with local fallback) -->
+  <!-- Scripts -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script>window.L || document.write('<script src="js/leaflet.js"><\/script>')</script>
-  
-  <!-- Application Client Scripts -->
-  <script src="js/app.js?v=2.1"></script>
-  <script src="js/issue-detection.js?v=2.1"></script>
-  <script src="js/hotspot-map.js?v=2.1"></script>
-  <script src="js/admin-dashboard.js?v=2.1"></script>
-
+  <script src="js/leaflet.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/issue-detection.js"></script>
+  <script src="js/hotspot-map.js"></script>
+  <script src="js/admin-dashboard.js"></script>
 </body>
 </html>

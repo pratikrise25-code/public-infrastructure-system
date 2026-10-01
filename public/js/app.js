@@ -275,6 +275,7 @@ const App = {
   },
 
   async loadMyComplaints() {
+    const tbody = document.getElementById('my-complaints-tbody');
     const container = document.getElementById('my-complaints-list');
     const userHeaderName = document.getElementById('my-complaints-user-name');
     if (userHeaderName) userHeaderName.textContent = this.currentUser.name;
@@ -309,6 +310,45 @@ const App = {
 
       const compEl = document.getElementById('home-stat-completed');
       if (compEl) compEl.textContent = comp;
+
+      if (tbody) {
+        if (complaints.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-dim);">No complaints recorded yet. Click "Report New Issue" to file a complaint.</td></tr>';
+        } else {
+          tbody.innerHTML = complaints.map(c => {
+            return `
+              <tr>
+                <td><strong>#${c.complaint_number}</strong></td>
+                <td>
+                  <img src="${c.image_url || '/assets/sample-pothole.jpg'}" alt="photo" style="width: 48px; height: 36px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border-color);">
+                </td>
+                <td>
+                  <div style="font-weight: 700; color: var(--civic-dark);">${App.getIssueEmoji(c.issue_type)} ${c.issue_type}</div>
+                  <div style="font-size: 0.75rem; color: var(--text-dim);">${c.department}</div>
+                </td>
+                <td>
+                  <span class="badge-severity ${c.severity}">${c.severity}</span>
+                </td>
+                <td>
+                  <div style="font-size: 0.85rem;">${c.location_name || 'Corridor'}</div>
+                  <div style="font-size: 0.72rem; color: var(--text-dim);">${c.ward_district || 'District'}</div>
+                </td>
+                <td>
+                  <div style="font-size: 0.8rem; color: var(--text-dim);">${App.formatDate(c.reported_at)}</div>
+                </td>
+                <td>
+                  <span class="badge-status ${c.status}">${c.status.replace('_', ' ')}</span>
+                </td>
+                <td>
+                  <button class="btn-action-sm" onclick="App.trackComplaint('${c.complaint_number}')">
+                    🔍 Track
+                  </button>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
 
       if (!container) return;
 
@@ -408,6 +448,18 @@ const App = {
       return;
     }
     await this.trackComplaint(input.value.trim());
+  },
+
+  
+  handleTrackSubmit(e) {
+    if (e) e.preventDefault();
+    const input = document.getElementById('track-input');
+    const val = (input?.value || '').trim();
+    if (!val) {
+      this.showToast('Please enter a complaint ticket number.', 'warning');
+      return;
+    }
+    this.trackComplaint(val);
   },
 
   async trackComplaint(ticketOrId) {
@@ -547,9 +599,11 @@ const App = {
     if (lower.includes('light')) return '💡';
     if (lower.includes('crack')) return '⚡';
     if (lower.includes('sidewalk') || lower.includes('footpath')) return '🚶';
+    if (lower.includes('garbage') || lower.includes('waste')) return '🗑️';
     if (lower.includes('water') || lower.includes('leak')) return '💧';
-    if (lower.includes('garbage')) return '🗑️';
-    if (lower.includes('building')) return '🏢';
+    if (lower.includes('drain')) return '🚰';
+    if (lower.includes('infrastructure') || lower.includes('building')) return '🏢';
+    if (lower.includes('sign')) return '🛑';
     return '⚠️';
   },
 

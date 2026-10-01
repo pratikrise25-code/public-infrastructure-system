@@ -98,18 +98,22 @@ function calculateSafetyRiskScore(issueType, severity) {
     baseRisk = 90; // Nocturnal crime / electrocution hazard
   } else if (t.includes('pothole') || t.includes('crater')) {
     baseRisk = (s === 'CRITICAL' || s === 'HIGH') ? 85 : 65; // High speed vehicular collision hazard
-  } else if (t.includes('building') || t.includes('facade') || t.includes('collapse')) {
-    baseRisk = 85; // Structural falling debris hazard
+  } else if (t.includes('infrastructure') || t.includes('building') || t.includes('bridge') || t.includes('barrier')) {
+    baseRisk = 85; // Structural failure or falling hazard
+  } else if (t.includes('drain') || t.includes('drainage')) {
+    baseRisk = 80; // Drainage overflow, open manhole, waterlogging hazard
   } else if (t.includes('water') || t.includes('flood') || t.includes('leak')) {
     baseRisk = 75; // Road erosion, sinking ground hazard
-  } else if (t.includes('sidewalk') || t.includes('crack')) {
-    baseRisk = 45; // Pedestrian trip hazard
-  } else if (t.includes('garbage')) {
-    baseRisk = 40; // Public sanitation / vector hazard
-  } else if (t.includes('no issue')) {
+  } else if (t.includes('sign')) {
+    baseRisk = 60; // Obscured/damaged road sign traffic risk
+  } else if (t.includes('footpath') || t.includes('sidewalk') || t.includes('crack')) {
+    baseRisk = 50; // Pedestrian trip hazard
+  } else if (t.includes('garbage') || t.includes('waste')) {
+    baseRisk = 40; // Public sanitation / disease vector hazard
+  } else if (t.includes('no issue') || t.includes('unclear')) {
     baseRisk = 5;
   } else {
-    baseRisk = 45;
+    baseRisk = 50;
   }
 
   // Adjust for severity

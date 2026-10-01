@@ -1,3 +1,4 @@
+try { process.loadEnvFile(); } catch (e) {}
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
@@ -224,8 +225,7 @@ app.post('/api/ai/analyze-image', upload.single('image'), async (req, res) => {
       return res.status(400).json({ error: 'No image file uploaded. Please upload a JPG, JPEG, or PNG image.' });
     }
 
-    const userApiKey = req.headers['x-gemini-api-key'] || req.body.geminiApiKey || process.env.GEMINI_API_KEY;
-    const aiResult = await analyzeInfrastructureImage(filePath, originalName, mimeType, fileSize, userApiKey);
+    const aiResult = await analyzeInfrastructureImage(filePath, originalName, mimeType, fileSize);
     const relativeUrl = req.file ? `/uploads/${req.file.filename}` : `/${req.body.samplePath.replace(/^\/+/, '')}`;
 
     return res.json({
@@ -1011,13 +1011,80 @@ app.get('/api/admin/summary', (req, res) => {
   }
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`=======================================================`);
-  console.log(`NagarDristi AI- AI-Powered Vision for Better Cities`);
-  console.log(`Server listening at http://localhost:${PORT}`);
-  console.log(`Environment AI Status: ${process.env.GEMINI_API_KEY ? 'Active (Gemini Vision API)' : 'Demo Provider Mode (Set GEMINI_API_KEY for Live API)'}`);
-  console.log(`=======================================================`);
+
+/**
+ * POST /api/complaints/:id/correct-issue
+ * Allows administrator to correct the detected issue type, severity, and department
+ */
+app.post('/api/complaints/:id/correct-issue', (req, res) => {
+  try {
+    const complaintId = req.params.id;
+    const { issueType, severity, department, suggestedAction, reason } = req.body;
+
+    if (!issueType) {
+      return res.status(400).json({ error: 'Issue type is required for correction.' });
+    }
+
+    const complaint = db.prepare('SELECT * FROM complaints WHERE id = ?').get(complaintId);
+    if (!complaint) {
+      return res.status(404).json({ error: 'Complaint not found.' });
+    }
+
+    const finalSeverity = severity || complaint.severity;
+    const finalDept = department || complaint.department;
+    const finalAction = suggestedAction || complaint.recommended_action;
+
+    db.prepare(`
+      UPDATE complaints 
+      SET issue_type = ?, severity = ?, department = ?, recommended_action = ?, updated_at = CURRENT_TIMESTAMP 
+      WHERE id = ?
+    `).run(issueType, finalSeverity, finalDept, finalAction, complaintId);
+
+    // Re-evaluate priority
+    const priority = evaluateAndStorePriority(complaintId);
+
+    // Record admin correction in maintenance history
+    try {
+      db.prepare(`
+        INSERT INTO maintenance_history (
+          asset_id, complaint_id, action_taken, performed_by, before_condition, after_condition,
+          cost_estimate, completion_notes, completed_at
+        ) VALUES (?, ?, ?, ?, ?, ?, 0, ?, CURRENT_TIMESTAMP)
+      `).run(
+        complaint.asset_id,
+        complaintId,
+        `Issue corrected from "${complaint.issue_type}" to "${issueType}"`,
+        'Municipal Administrator',
+        complaint.severity,
+        finalSeverity,
+        reason || 'Administrator corrected AI detection result.'
+      );
+    } catch (e) {
+      console.warn('Notice recording history log:', e.message);
+    }
+
+    const updated = db.prepare('SELECT * FROM complaints WHERE id = ?').get(complaintId);
+
+    return res.json({
+      success: true,
+      message: `Issue corrected to ${issueType} (${finalSeverity} Priority)`,
+      data: { ...updated, priority }
+    });
+  } catch (err) {
+    console.error('Error correcting issue:', err);
+    return res.status(500).json({ error: 'Failed to correct issue', details: err.message });
+  }
 });
+
+// Start Server
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`=======================================================`);
+    console.log(`NagarDristi AI- AI-Powered Vision for Better Cities`);
+    console.log(`Server listening at http://localhost:${PORT}`);
+    console.log(`Environment AI Status: ${process.env.GEMINI_API_KEY ? 'Active (Gemini Vision API)' : 'Demo Provider Mode (Set GEMINI_API_KEY for Live API)'}`);
+    console.log(`=======================================================`);
+  });
+}
 
 module.exports = app;
