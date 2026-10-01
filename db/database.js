@@ -7,6 +7,7 @@ const db = new DatabaseSync(DB_PATH);
 
 // Enable foreign keys
 db.exec('PRAGMA foreign_keys = ON;');
+try { db.exec('PRAGMA journal_mode = WAL;'); } catch (e) {}
 
 // Initialize schema
 function initSchema() {

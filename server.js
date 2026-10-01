@@ -82,6 +82,17 @@ const upload = multer({
 });
 
 // Middleware
+// Production CORS Middleware
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-user-id, x-user-role');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(UPLOADS_DIR));
@@ -1177,7 +1188,7 @@ app.post('/api/complaints/:id/correct-issue', requireMunicipalOfficer, (req, res
 
 // Start Server
 if (require.main === module) {
-  app.listen(PORT, () => {
+  app.listen(PORT, '0.0.0.0', () => {
     console.log(`=======================================================`);
     console.log(`NagarDristi AI- AI-Powered Vision for Better Cities`);
     console.log(`Server listening at http://localhost:${PORT}`);
