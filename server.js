@@ -72,6 +72,21 @@ seedDatabase();
  * GET /api/auth/me
  * Retrieves current active user and their personal complaint count
  */
+
+/**
+ * GET /api/health
+ * Public health check endpoint for 24/7 uptime monitoring & keep-alive
+ */
+app.get('/api/health', (req, res) => {
+  return res.json({
+    status: 'ok',
+    service: 'NagarDristi AI',
+    timestamp: new Date().toISOString(),
+    uptimeSeconds: Math.round(process.uptime()),
+    database: 'connected'
+  });
+});
+
 app.get('/api/auth/me', (req, res) => {
   try {
     const userId = Number(req.query.userId || req.headers['x-user-id'] || 4);
@@ -1082,6 +1097,18 @@ if (require.main === module) {
     console.log(`=======================================================`);
     console.log(`NagarDristi AI- AI-Powered Vision for Better Cities`);
     console.log(`Server listening at http://localhost:${PORT}`);
+
+    // 24/7 Cloud Keep-Alive: Ping server every 8 minutes to prevent container sleep
+    const https = require('https');
+    const cloudUrl = process.env.RENDER_EXTERNAL_URL || 'https://public-infrastructure-system.onrender.com';
+    setInterval(() => {
+      try {
+        https.get(`${cloudUrl}/api/health`, (res) => {
+          console.log(`[${new Date().toLocaleTimeString()}] 24/7 Keep-Alive: HTTP ${res.statusCode}`);
+        }).on('error', () => {});
+      } catch (e) {}
+    }, 8 * 60 * 1000);
+
     console.log(`Environment AI Status: ${process.env.GEMINI_API_KEY ? 'Active (Gemini Vision API)' : 'Demo Provider Mode (Set GEMINI_API_KEY for Live API)'}`);
     console.log(`=======================================================`);
   });
