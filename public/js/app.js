@@ -371,7 +371,6 @@ const App = {
     });
   },
 
-  async 
   filterMyComplaints() {
     const searchVal = (document.getElementById('my-complaints-search')?.value || '').toLowerCase().trim();
     const statusVal = document.getElementById('my-complaints-status-filter')?.value || '';
@@ -392,7 +391,7 @@ const App = {
     });
   },
 
-  loadMyComplaints() {
+  async loadMyComplaints() {
     const tbody = document.getElementById('my-complaints-tbody');
     const container = document.getElementById('my-complaints-list');
     const userHeaderName = document.getElementById('my-complaints-user-name');
@@ -756,7 +755,7 @@ const App = {
       toast.style.opacity = '0';
       toast.style.transform = 'translateX(20px)';
       toast.style.transition = 'all 0.3s ease';
-      setTimeout(() => toast.remove(), 300);
+      setTimeout(() => { if (typeof toast.remove === 'function') toast.remove(); else if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
     }, 4500);
   }
 };

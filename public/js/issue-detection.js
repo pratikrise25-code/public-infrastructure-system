@@ -204,7 +204,7 @@ const IssueDetection = {
           unclearBox.style.display = 'block';
           const msgEl = document.getElementById('ai-unclear-text');
           if (msgEl) msgEl.textContent = result.data.message || 'Unable to identify the issue clearly. Please upload a clearer image.';
-          unclearBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          if (unclearBox && typeof unclearBox.scrollIntoView === 'function') unclearBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
         App.showToast('Unable to identify the issue clearly. Please upload a clearer image.', 'warning');
       } else {
@@ -264,7 +264,7 @@ const IssueDetection = {
     const wrapper = document.getElementById('category-selector-wrapper');
     if (wrapper) wrapper.style.display = 'none';
 
-    box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (box && typeof box.scrollIntoView === 'function') box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   },
 
   /**
@@ -283,8 +283,8 @@ const IssueDetection = {
     // Smoothly scroll to Step 2 (Select Location)
     const locSelect = document.getElementById('complaint-location-select');
     if (locSelect) {
-      locSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      locSelect.focus();
+      if (locSelect && typeof locSelect.scrollIntoView === 'function') locSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (locSelect && typeof locSelect.focus === 'function') locSelect.focus();
     }
   },
 
