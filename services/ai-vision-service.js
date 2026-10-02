@@ -1,11 +1,13 @@
 const fs = require('fs');
 const path = require('path');
+const jpeg = require('jpeg-js');
+const { PNG } = require('pngjs');
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
 const MIN_FILE_SIZE = 400; // 400 bytes minimum to prevent corrupt or empty files
 
-// The 10 recognized public infrastructure problem categories
+// The recognized public infrastructure problem categories
 const ISSUE_TYPES = [
   'Pothole',
   'Road crack',
@@ -16,7 +18,8 @@ const ISSUE_TYPES = [
   'Damaged drainage',
   'Broken public infrastructure',
   'Damaged road sign',
-  'Other visible infrastructure damage'
+  'Other visible infrastructure damage',
+  'Unable to Identify'
 ];
 
 /**
@@ -92,6 +95,13 @@ const ISSUE_METADATA = {
     suggestedAction: 'Maintenance inspection required',
     department: 'Municipal Works',
     explanation: 'Visible wear or defect on municipal infrastructure asset requiring maintenance attention.'
+  },
+  'Unable to Identify': {
+    simpleIssue: 'Unable to Identify',
+    severity: 'Low',
+    suggestedAction: 'Please upload a clearer image or select the issue manually.',
+    department: 'Municipal Works',
+    explanation: 'We could not identify the infrastructure issue clearly from this image. Please upload a clearer image or select the issue manually.'
   }
 };
 
@@ -112,12 +122,12 @@ function getSimpleWords(issueType, customSeverity) {
   }
 
   return {
-    simpleIssue: issueType || 'Other visible infrastructure damage',
-    confidenceLabel: 'Detection Confidence',
-    severity: customSeverity || 'Medium',
-    suggestedAction: 'Road maintenance required',
-    department: 'Roads & Bridges',
-    explanation: 'Public infrastructure defect detected by visual inspection.'
+    simpleIssue: 'Unable to Identify',
+    confidenceLabel: 'Not reliable',
+    severity: 'Low',
+    suggestedAction: 'Please upload a clearer image or select the issue manually.',
+    department: 'Municipal Works',
+    explanation: 'We could not identify the infrastructure issue clearly from this image. Please upload a clearer image or select the issue manually.'
   };
 }
 
@@ -128,7 +138,7 @@ function validateImageFile(filePath, mimeType, fileSize) {
   if (!fs.existsSync(filePath)) {
     return {
       isValid: false,
-      reason: 'Unable to identify the issue clearly. Please upload a clearer image.'
+      reason: 'Image file does not exist on server.'
     };
   }
 
@@ -142,16 +152,15 @@ function validateImageFile(filePath, mimeType, fileSize) {
   if (actualSize < MIN_FILE_SIZE) {
     return {
       isValid: false,
-      reason: 'Unable to identify the issue clearly. Please upload a clearer image.'
+      reason: 'Image is too small or empty. Please upload a valid infrastructure photo.'
     };
   }
 
-  // Verify file buffer magic numbers
   const buffer = fs.readFileSync(filePath);
   if (buffer.length < 12) {
     return {
       isValid: false,
-      reason: 'Unable to identify the issue clearly. Please upload a clearer image.'
+      reason: 'Image buffer too small. Please upload a clearer image.'
     };
   }
 
@@ -169,194 +178,330 @@ function validateImageFile(filePath, mimeType, fileSize) {
 }
 
 /**
- * Enhanced Local Vision Classifier (Reliable Demo Mode)
- * Checks image buffer variance, luminance, entropy, and filename semantics.
- * If image is blank, solid color, or non-infrastructure, gracefully returns "Unable to identify".
+ * Decode image buffer into { width, height, data: Uint8Array RGBA }
+ */
+function decodeImageBuffer(buffer) {
+  if (!buffer || buffer.length < 12) {
+    throw new Error('Image data is too small or corrupt.');
+  }
+
+  // PNG magic number: 89 50 4E 47
+  if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) {
+    try {
+      const png = PNG.sync.read(buffer);
+      return { width: png.width, height: png.height, data: png.data };
+    } catch (e) {
+      throw new Error('Corrupted PNG image: ' + e.message);
+    }
+  }
+
+  // JPEG magic number: FF D8 FF
+  if (buffer[0] === 0xFF && buffer[1] === 0xD8) {
+    try {
+      const decoded = jpeg.decode(buffer, { useTArray: true, formatAsRGBA: true });
+      return { width: decoded.width, height: decoded.height, data: decoded.data };
+    } catch (e) {
+      throw new Error('Corrupted JPEG image: ' + e.message);
+    }
+  }
+
+  // Fallback attempt: PNG first, then JPEG
+  try {
+    const png = PNG.sync.read(buffer);
+    return { width: png.width, height: png.height, data: png.data };
+  } catch (e1) {
+    try {
+      const decoded = jpeg.decode(buffer, { useTArray: true, formatAsRGBA: true });
+      return { width: decoded.width, height: decoded.height, data: decoded.data };
+    } catch (e2) {
+      throw new Error('Unsupported image format. Please upload a valid JPG or PNG.');
+    }
+  }
+}
+
+/**
+ * Extract pixel-level metrics from decoded RGBA image
+ */
+function extractDecodedMetrics(decoded) {
+  const { width, height, data } = decoded;
+  const totalPixels = width * height;
+
+  // Adaptive sampling step for speed while maintaining high spatial accuracy
+  const step = Math.max(1, Math.floor(Math.sqrt(totalPixels / 60000)));
+
+  let sumLum = 0, sumLumSq = 0;
+  let darkCount = 0, brightCount = 0;
+  let blueCount = 0, redCount = 0, greenCount = 0, yellowCount = 0;
+  let asphaltCount = 0, concreteCount = 0, brickCount = 0;
+  let centerDarkCount = 0, borderDarkCount = 0;
+  let skinToneCount = 0;
+  let edgeTransitions = 0;
+  let sampledPixels = 0;
+
+  const midX = width / 2;
+  const midY = height / 2;
+  const radX = width * 0.28;
+  const radY = height * 0.28;
+  const borderMarginX = width * 0.15;
+  const borderMarginY = height * 0.15;
+
+  let sampledCenter = 0;
+  let sampledBorder = 0;
+
+  for (let y = 0; y < height; y += step) {
+    for (let x = 0; x < width; x += step) {
+      const idx = (y * width + x) * 4;
+      const r = data[idx];
+      const g = data[idx + 1];
+      const b = data[idx + 2];
+
+      const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+      sumLum += lum;
+      sumLumSq += lum * lum;
+      sampledPixels++;
+
+      const isDark = lum < 55;
+      const isBright = lum > 200;
+      if (isDark) darkCount++;
+      if (isBright) brightCount++;
+
+      const isCenter = Math.abs(x - midX) < radX && Math.abs(y - midY) < radY;
+      const isBorder = x < borderMarginX || x > width - borderMarginX || y < borderMarginY || y > height - borderMarginY;
+
+      if (isCenter) {
+        sampledCenter++;
+        if (isDark) centerDarkCount++;
+      }
+      if (isBorder) {
+        sampledBorder++;
+        if (isDark) borderDarkCount++;
+      }
+
+      const maxC = Math.max(r, g, b);
+      const minC = Math.min(r, g, b);
+      const sat = maxC - minC;
+
+      // Asphalt road surface: low saturation, dark-to-mid gray
+      if (sat < 35 && lum >= 28 && lum <= 135) asphaltCount++;
+      // Concrete footpath/pavement: low saturation, mid-to-light gray
+      if (sat < 35 && lum > 135 && lum < 220) concreteCount++;
+
+      // Brick / masonry / red public structure
+      if (r > 140 && (r - g) > 50 && (r - b) > 75) brickCount++;
+
+      // Pure colors
+      if (b > r + 30 && b > g + 15 && lum > 35 && lum < 225) blueCount++;
+      if (r > b + 30 && r > g + 20 && lum > 35 && lum < 225) redCount++;
+      if (g > r + 25 && g > b + 20 && lum > 35 && lum < 225) greenCount++;
+      // Yellow caution / road sign color
+      if (r > 170 && g > 150 && b < 80 && Math.abs(r - g) < 50) yellowCount++;
+
+      // Genuine skin tone (for selfie / people abstention)
+      if (r > 110 && g > 65 && b > 45 && r > g && g > b && (r - g) >= 12 && (r - g) <= 60 && (r - b) <= 75) {
+        skinToneCount++;
+      }
+
+      // Edge detection (horizontal pixel gradient)
+      if (x + step < width) {
+        const nextIdx = (y * width + (x + step)) * 4;
+        const nextLum = 0.299 * data[nextIdx] + 0.587 * data[nextIdx + 1] + 0.114 * data[nextIdx + 2];
+        if (Math.abs(lum - nextLum) > 35) edgeTransitions++;
+      }
+    }
+  }
+
+  if (sampledPixels === 0) {
+    return null;
+  }
+
+  const mean = sumLum / sampledPixels;
+  const stdDev = Math.sqrt(Math.max(0, (sumLumSq / sampledPixels) - (mean * mean)));
+
+  return {
+    mean,
+    stdDev,
+    darkRatio: darkCount / sampledPixels,
+    brightRatio: brightCount / sampledPixels,
+    asphaltRatio: asphaltCount / sampledPixels,
+    concreteRatio: concreteCount / sampledPixels,
+    brickRatio: brickCount / sampledPixels,
+    blueRatio: blueCount / sampledPixels,
+    redRatio: redCount / sampledPixels,
+    greenRatio: greenCount / sampledPixels,
+    yellowRatio: yellowCount / sampledPixels,
+    skinRatio: skinToneCount / sampledPixels,
+    edgeDensity: edgeTransitions / sampledPixels,
+    centerDarkRatio: sampledCenter > 0 ? centerDarkCount / sampledCenter : 0,
+    borderDarkRatio: sampledBorder > 0 ? borderDarkCount / sampledBorder : 0
+  };
+}
+
+/**
+ * Enhanced Local Vision Classifier
+ * Decodes actual image pixels, extracts visual signatures, and applies strict confidence gating.
+ * NEVER defaults to 'Water Pipeline Repair'.
+ * Returns 'Unable to Identify' with 0 confidence if image is blank, blurry, non-infrastructure, or uncertain.
  */
 class EnhancedLocalVisionClassifier {
   static analyze(filePath, originalFilename, mimeType) {
     const validation = validateImageFile(filePath, mimeType, fs.statSync(filePath).size);
     if (!validation.isValid) {
-      return this.buildUnclearResult();
+      return this.buildUnclearResult(validation.reason);
     }
 
-    const buffer = validation.buffer;
-    const lowerName = (originalFilename || '').toLowerCase();
-
-    // 1. Check for explicit non-infrastructure or unclear keywords (using word tokens or safe prefixes)
-    const unclearTokens = ['unknown', 'unclear', 'blank', 'selfie', 'non-infra', 'not-infra', 'test-unknown'];
-    for (const token of unclearTokens) {
-      if (lowerName.includes(token)) {
-        return this.buildUnclearResult();
-      }
-    }
-    // Also check non-civic objects with boundary regex to prevent collisions (e.g. "tree" matching "streetlight")
-    if (/(^|[-_ .])(cat|dog|pet|pets|food|person|people|face|flower|tree|trees|bird|animal)([-_ .]|$)/i.test(lowerName)) {
-      return this.buildUnclearResult();
+    let decoded;
+    try {
+      decoded = decodeImageBuffer(validation.buffer);
+    } catch (err) {
+      return this.buildUnclearResult('Unable to decode image. Please upload a clearer JPG or PNG photo.');
     }
 
-    // 2. Entropy and Variance Analysis on the actual image buffer
-    const metrics = this.extractImageMetrics(buffer);
-
-    // If byte variance is too low (e.g., solid color, blank image, or uniform block)
-    if (metrics.variance < 14 || metrics.entropy < 1.5) {
-      return this.buildUnclearResult();
+    const m = extractDecodedMetrics(decoded);
+    if (!m) {
+      return this.buildUnclearResult('Unable to extract image features. Please upload a clearer photo.');
     }
 
-    // 3. Check filename semantics across the 10 infrastructure categories
-    if (lowerName.includes('pothole') || lowerName.includes('crater') || lowerName.includes('hole') || lowerName.includes('road-cavity')) {
-      return this.buildIdentifiedResult('Pothole', 'High', 92.5);
-    }
-    if (lowerName.includes('crack') || lowerName.includes('fissure') || lowerName.includes('asphalt-crack')) {
-      return this.buildIdentifiedResult('Road crack', 'Medium', 89.0);
-    }
-    if (lowerName.includes('streetlight') || lowerName.includes('street-light') || lowerName.includes('lamp') || lowerName.includes('luminaire') || lowerName.includes('light-pole')) {
-      return this.buildIdentifiedResult('Broken streetlight', 'High', 94.0);
-    }
-    if (lowerName.includes('footpath') || lowerName.includes('sidewalk') || lowerName.includes('pavement') || lowerName.includes('curb') || lowerName.includes('paver')) {
-      return this.buildIdentifiedResult('Damaged footpath', 'Medium', 90.5);
-    }
-    if (lowerName.includes('garbage') || lowerName.includes('trash') || lowerName.includes('waste') || lowerName.includes('debris') || lowerName.includes('dump') || lowerName.includes('litter')) {
-      return this.buildIdentifiedResult('Garbage/waste', 'Medium', 91.0);
-    }
-    if (lowerName.includes('water') || lowerName.includes('leak') || lowerName.includes('pipe') || lowerName.includes('burst') || lowerName.includes('flood') || lowerName.includes('puddle')) {
-      return this.buildIdentifiedResult('Water leakage', 'High', 93.5);
-    }
-    if (lowerName.includes('drain') || lowerName.includes('drainage') || lowerName.includes('gutter') || lowerName.includes('sewer') || lowerName.includes('manhole') || lowerName.includes('culvert')) {
-      return this.buildIdentifiedResult('Damaged drainage', 'High', 91.5);
-    }
-    if (lowerName.includes('sign') || lowerName.includes('signboard') || lowerName.includes('traffic-sign') || lowerName.includes('board')) {
-      return this.buildIdentifiedResult('Damaged road sign', 'Medium', 88.5);
-    }
-    if (lowerName.includes('infrastructure') || lowerName.includes('railing') || lowerName.includes('barrier') || lowerName.includes('guardrail') || lowerName.includes('bus-stop') || lowerName.includes('building') || lowerName.includes('bench')) {
-      return this.buildIdentifiedResult('Broken public infrastructure', 'High', 90.0);
-    }
-    if (lowerName.includes('damage') || lowerName.includes('defect') || lowerName.includes('hazard')) {
-      return this.buildIdentifiedResult('Other visible infrastructure damage', 'Medium', 86.0);
+    // 1. Abstention Gate: Blank, solid color, pitch black, blown-out white, or blurry
+    if (m.stdDev < 4.0) {
+      return this.buildUnclearResult('Image appears blank or uniform. Please upload a photo of the infrastructure problem.');
     }
 
-    // 4. Feature-based visual classification from buffer
-    return this.classifyFromMetrics(metrics);
-  }
-
-  /**
-   * Sample bytes across buffer to calculate variance, entropy, and color ratios
-   */
-  static extractImageMetrics(buffer) {
-    const len = buffer.length;
-    const step = Math.max(1, Math.floor(len / 8000));
-    let sum = 0;
-    let sumSq = 0;
-    let samples = 0;
-
-    let darkPixels = 0;
-    let brightPixels = 0;
-    let edgeTransitions = 0;
-    let blueDominant = 0;
-    let redDominant = 0;
-
-    const hist = new Uint32Array(256);
-
-    for (let i = 0; i < len - 4; i += step) {
-      const b1 = buffer[i];
-      const b2 = buffer[i + 1];
-      const b3 = buffer[i + 2];
-
-      const lum = b1 * 0.299 + b2 * 0.587 + b3 * 0.114;
-      sum += lum;
-      sumSq += lum * lum;
-      hist[b1]++;
-
-      if (lum < 50) darkPixels++;
-      if (lum > 200) brightPixels++;
-
-      const diff = Math.abs(b1 - b2) + Math.abs(b2 - b3);
-      if (diff > 40) edgeTransitions++;
-
-      if (b3 > b1 + 25 && b3 > b2 + 10) blueDominant++;
-      if (b1 > b3 + 25 && b1 > b2 + 15) redDominant++;
-
-      samples++;
+    if (m.mean < 15 || m.mean > 248) {
+      return this.buildUnclearResult('Image is too dark or overexposed. Please upload a clearer photo in good lighting.');
     }
 
-    if (samples === 0) {
-      return { variance: 0, entropy: 0, edgeDensity: 0, blueRatio: 0, redRatio: 0, darkRatio: 0, brightRatio: 0 };
+    // 2. Abstention Gate: Portrait / selfie / face / human photo
+    if (m.skinRatio > 0.35) {
+      return this.buildUnclearResult('We could not identify an infrastructure issue in this photo. Please upload a photo of the public damage or select the issue manually.');
     }
 
-    const mean = sum / samples;
-    const variance = Math.sqrt(Math.max(0, (sumSq / samples) - (mean * mean)));
+    // 3. Score candidate infrastructure defects based on physical visual evidence
+    const candidates = [];
 
-    let entropy = 0;
-    for (let i = 0; i < 256; i++) {
-      if (hist[i] > 0) {
-        const p = hist[i] / samples;
-        entropy -= p * Math.log2(p);
-      }
+    // Pothole: Road surface cavity. High asphalt, dark center cavity contrasting with road borders
+    if (m.asphaltRatio > 0.40 && m.centerDarkRatio > 0.18 && m.borderDarkRatio < 0.12) {
+      const conf = Math.min(96, Math.max(78, Math.round(75 + (m.centerDarkRatio * 45) + (m.asphaltRatio * 15))));
+      candidates.push({
+        issueType: 'Pothole',
+        severity: 'High',
+        confidence: conf,
+        suggestedAction: 'Road maintenance required',
+        department: 'Roads & Bridges',
+        explanation: 'Road surface cavity observed that can cause vehicle damage or accidents.'
+      });
     }
 
-    return {
-      mean,
-      variance,
-      entropy,
-      edgeDensity: edgeTransitions / samples,
-      blueRatio: blueDominant / samples,
-      redRatio: redDominant / samples,
-      darkRatio: darkPixels / samples,
-      brightRatio: brightPixels / samples
-    };
-  }
-
-  /**
-   * Rule-based visual classification
-   */
-  static classifyFromMetrics(m) {
-    // If edge density is too low or image is too uniform, it's not a clear infrastructure photo
-    if (m.edgeDensity < 0.08 || m.variance < 18) {
-      return this.buildUnclearResult();
+    // Road Crack: Asphalt pavement with distinct fissures/edge transitions, not a centered cavity
+    if (m.asphaltRatio > 0.50 && m.darkRatio > 0.015 && m.edgeDensity > 0.008 && m.centerDarkRatio < 0.15) {
+      const conf = Math.min(94, Math.max(75, Math.round(74 + (m.asphaltRatio * 18) + (m.edgeDensity * 80))));
+      candidates.push({
+        issueType: 'Road crack',
+        severity: 'Medium',
+        confidence: conf,
+        suggestedAction: 'Road maintenance required',
+        department: 'Roads & Bridges',
+        explanation: 'Pavement distress fissures detected. Bitumen sealing required to prevent water penetration.'
+      });
     }
 
-    // 1. Water leakage: Significant blue-cyan channel dominance or wet asphalt reflections
-    if (m.blueRatio > 0.16 || (m.blueRatio > 0.10 && m.brightRatio > 0.18)) {
-      return this.buildIdentifiedResult('Water leakage', 'High', 91.5);
+    // Water Leakage: Genuine blue/cyan pool on asphalt or street surface
+    if (m.blueRatio > 0.06 && (m.asphaltRatio > 0.25 || m.concreteRatio > 0.25 || m.blueRatio > 0.12)) {
+      const conf = Math.min(96, Math.max(78, Math.round(75 + (m.blueRatio * 120))));
+      candidates.push({
+        issueType: 'Water leakage',
+        severity: 'High',
+        confidence: conf,
+        suggestedAction: 'Pipe repair required',
+        department: 'Water & Sewerage',
+        explanation: 'Pressurized water pipe leakage overflowing onto the road and eroding foundation.'
+      });
     }
 
-    // 2. Broken streetlight: Overall nocturnal dark scene with high-contrast bright point
-    if (m.darkRatio > 0.45 && m.brightRatio > 0.04) {
-      return this.buildIdentifiedResult('Broken streetlight', 'High', 93.0);
+    // Broken Streetlight: Dark nocturnal scene with localized luminaire
+    if (m.darkRatio > 0.70 && m.mean < 55) {
+      const conf = Math.min(95, Math.max(76, Math.round(78 + (m.darkRatio * 18))));
+      candidates.push({
+        issueType: 'Broken streetlight',
+        severity: 'High',
+        confidence: conf,
+        suggestedAction: 'Electrical repair required',
+        department: 'Electrical & Lighting',
+        explanation: 'Unlit or physically damaged street luminaire compromising night-time visibility and safety.'
+      });
     }
 
-    // 3. Garbage/waste: High entropy, multi-color spread with high edge variance
-    if (m.redRatio > 0.14 && m.edgeDensity > 0.32) {
-      return this.buildIdentifiedResult('Garbage/waste', 'Medium', 89.5);
+    // Garbage / Waste: High edge density with multi-colored scattered debris on road or sidewalk
+    if (m.edgeDensity > 0.08 && (m.redRatio > 0.08 || m.greenRatio > 0.05 || m.blueRatio > 0.05)) {
+      const conf = Math.min(95, Math.max(75, Math.round(75 + (m.edgeDensity * 100))));
+      candidates.push({
+        issueType: 'Garbage/waste',
+        severity: 'Medium',
+        confidence: conf,
+        suggestedAction: 'Sanitation clearance required',
+        department: 'Public Works & Sanitation',
+        explanation: 'Unsanctioned trash accumulation blocking the public road or sidewalk.'
+      });
     }
 
-    // 4. Damaged drainage: High edge density with dark longitudinal cavity
-    if (m.edgeDensity > 0.36 && m.darkRatio > 0.30) {
-      return this.buildIdentifiedResult('Damaged drainage', 'High', 90.0);
+    // Damaged Footpath: Concrete paving/slabs with cracks or surface disruption
+    if (m.concreteRatio > 0.45 && m.edgeDensity > 0.015) {
+      const conf = Math.min(94, Math.max(75, Math.round(72 + (m.concreteRatio * 20) + (m.edgeDensity * 60))));
+      candidates.push({
+        issueType: 'Damaged footpath',
+        severity: 'Medium',
+        confidence: conf,
+        suggestedAction: 'Footpath restoration required',
+        department: 'Roads & Bridges',
+        explanation: 'Broken, uneven, or displaced footpath paving creating a tripping hazard for pedestrians.'
+      });
     }
 
-    // 5. Road crack: Moderate luminance with dense linear edge transitions
-    if (m.edgeDensity > 0.35 && m.mean > 65 && m.mean < 175) {
-      return this.buildIdentifiedResult('Road crack', 'Medium', 88.5);
+    // Broken public infrastructure: high structural brick masonry or barrier defect
+    if (m.brickRatio > 0.40 && m.stdDev > 10) {
+      candidates.push({
+        issueType: 'Broken public infrastructure',
+        severity: 'High',
+        confidence: 88,
+        suggestedAction: 'Public infrastructure repair required',
+        department: 'Municipal Works',
+        explanation: 'Damaged public guardrail, pedestrian barrier, bus shelter, or civic installation.'
+      });
     }
 
-    // 6. Damaged footpath: Concrete luminance with interlocking paver fractures
-    if (m.mean > 135 && m.edgeDensity > 0.25) {
-      return this.buildIdentifiedResult('Damaged footpath', 'Medium', 89.0);
+    // Damaged road sign: high yellow caution contrast
+    if (m.yellowRatio > 0.15 && m.edgeDensity > 0.04) {
+      candidates.push({
+        issueType: 'Damaged road sign',
+        severity: 'Medium',
+        confidence: 87,
+        suggestedAction: 'Sign replacement required',
+        department: 'Traffic & Safety',
+        explanation: 'Damaged, missing, or bent road direction/safety sign obstructing vehicular guidance.'
+      });
     }
 
-    // 7. Pothole: Deep dark asphalt void with surrounding broken road pavement
-    if (m.darkRatio > 0.22 && m.edgeDensity > 0.20) {
-      return this.buildIdentifiedResult('Pothole', 'High', 92.0);
+    // Damaged drainage: dark longitudinal canal/chamber
+    if (m.darkRatio > 0.25 && m.edgeDensity > 0.12 && m.asphaltRatio < 0.40) {
+      candidates.push({
+        issueType: 'Damaged drainage',
+        severity: 'High',
+        confidence: 86,
+        suggestedAction: 'Drainage repair required',
+        department: 'Water & Sewerage',
+        explanation: 'Broken drain chamber or clogged stormwater culvert causing drainage overflow.'
+      });
     }
 
-    // 8. Other visible infrastructure damage if scene shows clear structural variance
-    if (m.edgeDensity > 0.20 && m.variance > 30) {
-      return this.buildIdentifiedResult('Other visible infrastructure damage', 'Medium', 85.0);
+    // Sort candidates by confidence descending
+    candidates.sort((a, b) => b.confidence - a.confidence);
+
+    // 4. Abstention Gate: If no candidate met the strict criteria, ABSTAIN!
+    if (candidates.length === 0) {
+      return this.buildUnclearResult('We could not identify the infrastructure issue clearly from this image. Please upload a clearer image or select the issue manually.');
     }
 
-    // If it doesn't clearly match any infrastructure defect pattern, return unclear
-    return this.buildUnclearResult();
+    const top = candidates[0];
+    return this.buildIdentifiedResult(top.issueType, top.severity, top.confidence);
   }
 
   static buildIdentifiedResult(issueType, severity, confidence) {
@@ -365,6 +510,7 @@ class EnhancedLocalVisionClassifier {
       isIdentified: true,
       issueType: meta.simpleIssue,
       confidence: Math.round(confidence),
+      confidenceLabel: 'Detection Confidence',
       severity: meta.severity,
       suggestedAction: meta.suggestedAction,
       department: meta.department,
@@ -378,18 +524,20 @@ class EnhancedLocalVisionClassifier {
     };
   }
 
-  static buildUnclearResult() {
+  static buildUnclearResult(reason) {
+    const message = reason || 'We could not identify the infrastructure issue clearly from this image. Please upload a clearer image or select the issue manually.';
     return {
       isIdentified: false,
-      issueType: 'Unclear',
+      issueType: 'Unable to Identify',
       confidence: 0,
+      confidenceLabel: 'Not reliable',
       severity: 'Low',
-      suggestedAction: 'Please upload a clearer image of the infrastructure issue',
+      suggestedAction: 'Please upload a clearer image or select the issue manually.',
       department: 'Municipal Works',
-      description: 'Unable to identify the issue clearly. Please upload a clearer image.',
-      message: 'Unable to identify the issue clearly. Please upload a clearer image.',
-      simpleIssue: 'Unable to identify the issue clearly',
-      simpleExplanation: 'Unable to identify the issue clearly. Please upload a clearer image.',
+      description: message,
+      message: message,
+      simpleIssue: 'Unable to Identify',
+      simpleExplanation: message,
       provider: 'AI-Assisted Detection',
       isAiAssisted: true,
       isDemo: true
@@ -399,7 +547,6 @@ class EnhancedLocalVisionClassifier {
 
 /**
  * Google Gemini Multimodal Vision API Integration
- * Uses official camelCase schema: inlineData { mimeType, data } and responseMimeType: 'application/json'
  * API Key is loaded STRICTLY from environment variables.
  */
 async function callGeminiVision(apiKey, filePath, mimeType) {
@@ -408,13 +555,13 @@ async function callGeminiVision(apiKey, filePath, mimeType) {
 
   const promptText = `
 You are an expert civic infrastructure inspection assistant for a municipal government public-service portal.
-Analyze this photo uploaded by a citizen.
+You are analyzing the uploaded infrastructure image. Identify only the infrastructure issue that is visibly supported by the image.
+Do not assume the issue from the filename, previous result, location, or complaint text.
 
-Determine if the photo clearly shows a municipal public infrastructure defect.
-If the image is blurry, blank, dark, or shows people, pets, selfies, food, indoor furniture, or non-infrastructure objects:
-Set isIdentified to false and message to "Unable to identify the issue clearly. Please upload a clearer image."
+If the image does not clearly show a supported infrastructure issue, or is blurry, blank, dark, shows people, pets, selfies, food, or non-infrastructure objects:
+Set isIdentified to false, issueType to "Unable to Identify", confidence to 0, and message to "We could not identify the infrastructure issue clearly from this image. Please upload a clearer image or select the issue manually."
 
-If it clearly shows a public infrastructure problem, classify it into EXACTLY ONE of the following 10 categories:
+If the image clearly shows a supported infrastructure issue, classify it into EXACTLY ONE of the following categories:
 - Pothole
 - Road crack
 - Broken streetlight
@@ -425,13 +572,14 @@ If it clearly shows a public infrastructure problem, classify it into EXACTLY ON
 - Broken public infrastructure
 - Damaged road sign
 - Other visible infrastructure damage
+- Unable to Identify
 
 Return ONLY valid JSON matching this schema:
 {
   "isIdentified": boolean,
   "issueType": string,
   "confidence": number,
-  "severity": string,
+  "severity": "Low" | "Medium" | "High" | "Critical",
   "suggestedAction": string,
   "department": string,
   "message": string
@@ -486,34 +634,24 @@ Return ONLY valid JSON matching this schema:
 
       const parsed = JSON.parse(rawText);
 
-      // Handle unclear response from Gemini
-      if (!parsed.isIdentified || parsed.issueType === 'Unclear' || !ISSUE_TYPES.includes(parsed.issueType)) {
-        if (!parsed.isIdentified) {
-          return {
-            isIdentified: false,
-            issueType: 'Unclear',
-            confidence: 0,
-            severity: 'Low',
-            suggestedAction: 'Please upload a clearer image of the infrastructure issue',
-            department: 'Municipal Works',
-            description: 'Unable to identify the issue clearly. Please upload a clearer image.',
-            message: 'Unable to identify the issue clearly. Please upload a clearer image.',
-            simpleIssue: 'Unable to identify the issue clearly',
-            simpleExplanation: 'Unable to identify the issue clearly. Please upload a clearer image.',
-            provider: 'AI-Assisted Detection',
-            isAiAssisted: true,
-            isDemo: false
-          };
-        }
+      // Handle unclear response or low confidence
+      if (!parsed.isIdentified || parsed.issueType === 'Unable to Identify' || parsed.issueType === 'Unclear' || !ISSUE_TYPES.includes(parsed.issueType)) {
+        return EnhancedLocalVisionClassifier.buildUnclearResult(parsed.message || 'We could not identify the infrastructure issue clearly from this image. Please upload a clearer image or select the issue manually.');
       }
 
-      const issueType = ISSUE_TYPES.includes(parsed.issueType) ? parsed.issueType : 'Pothole';
+      const confidenceScore = Number(parsed.confidence) || 0;
+      if (confidenceScore < 70) {
+        return EnhancedLocalVisionClassifier.buildUnclearResult('Confidence is below threshold. Please upload a clearer image or select the issue manually.');
+      }
+
+      const issueType = parsed.issueType;
       const meta = getSimpleWords(issueType, parsed.severity);
 
       return {
         isIdentified: true,
         issueType,
-        confidence: Math.min(99, Math.max(70, Number(parsed.confidence) || 92)),
+        confidence: Math.min(99, Math.round(confidenceScore)),
+        confidenceLabel: 'Detection Confidence',
         severity: meta.severity,
         suggestedAction: parsed.suggestedAction || meta.suggestedAction,
         department: parsed.department || meta.department,
@@ -537,13 +675,13 @@ Return ONLY valid JSON matching this schema:
 /**
  * Main Vision Analysis Dispatcher
  * Checks image validity, dispatches to Gemini if API key is present in environment,
- * or runs Enhanced Local Vision Classifier (Demo Mode).
+ * or runs Enhanced Local Vision Classifier.
  */
 async function analyzeInfrastructureImage(filePath, originalFilename, mimeType, fileSize) {
   // Validate Image
   const validation = validateImageFile(filePath, mimeType, fileSize);
   if (!validation.isValid) {
-    return EnhancedLocalVisionClassifier.buildUnclearResult();
+    return EnhancedLocalVisionClassifier.buildUnclearResult(validation.reason);
   }
 
   // API Key is stored STRICTLY in environment variables
@@ -554,12 +692,12 @@ async function analyzeInfrastructureImage(filePath, originalFilename, mimeType, 
       console.log('Dispatching image analysis to Google Gemini Multimodal Vision API...');
       return await callGeminiVision(apiKey, filePath, mimeType || 'image/jpeg');
     } catch (err) {
-      console.warn('Gemini API call failed, falling back to Demo Mode:', err.message);
+      console.warn('Gemini API call failed, falling back to Local Classifier:', err.message);
       return EnhancedLocalVisionClassifier.analyze(filePath, originalFilename, mimeType);
     }
   }
 
-  // Demo Mode
+  // Local Pixel Classifier
   return EnhancedLocalVisionClassifier.analyze(filePath, originalFilename, mimeType);
 }
 

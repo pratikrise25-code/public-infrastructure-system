@@ -69,23 +69,54 @@ const IssueDetection = {
     });
   },
 
-  
+  /**
+   * Clears previous detection results, confidences, and form fields
+   * Ensures new image starts completely fresh with no stale prediction reused.
+   */
+  clearPreviousAiState() {
+    this.latestAiResult = null;
+    this.isConfirmed = false;
+
+    // Reset auto-filled form fields
+    const issueInput = document.getElementById('complaint-issue-type');
+    const sevInput = document.getElementById('complaint-severity');
+    const deptInput = document.getElementById('complaint-department');
+    const actionInput = document.getElementById('complaint-suggested-action');
+    const descInput = document.getElementById('complaint-description');
+
+    if (issueInput) issueInput.value = '';
+    if (sevInput) sevInput.value = '';
+    if (deptInput) deptInput.value = '';
+    if (actionInput) actionInput.value = '';
+    if (descInput) descInput.value = '';
+
+    const aiBox = document.getElementById('ai-simple-result-box');
+    if (aiBox) aiBox.style.display = 'none';
+
+    const unclearBox = document.getElementById('ai-unclear-box');
+    if (unclearBox) unclearBox.style.display = 'none';
+
+    const wrapper = document.getElementById('category-selector-wrapper');
+    if (wrapper) wrapper.style.display = 'none';
+
+    const yesBtn = document.getElementById('btn-confirm-yes');
+    if (yesBtn) {
+      yesBtn.innerHTML = '✓ YES';
+      yesBtn.style.background = '';
+    }
+  },
+
   removeOrRetakePhoto() {
     this.currentFile = null;
     this.currentSamplePath = null;
     this.currentImageUrl = null;
-    this.latestAiResult = null;
-    this.isConfirmed = false;
+    this.clearPreviousAiState();
 
     const preview = document.getElementById('image-preview-container');
     if (preview) preview.style.display = 'none';
     const previewImg = document.getElementById('image-preview-element');
     if (previewImg) previewImg.src = '';
 
-    const aiBox = document.getElementById('ai-simple-result-box');
-    if (aiBox) aiBox.style.display = 'none';
-    const unclearBox = document.getElementById('ai-unclear-box');
-    if (unclearBox) unclearBox.style.display = 'none';
     const analyzingBox = document.getElementById('ai-analyzing-box');
     if (analyzingBox) analyzingBox.style.display = 'none';
 
@@ -109,9 +140,11 @@ const IssueDetection = {
       return;
     }
 
+    // Clear previous state before analyzing new image
+    this.clearPreviousAiState();
+
     this.currentFile = file;
     this.currentSamplePath = null;
-    this.isConfirmed = false;
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -135,9 +168,11 @@ const IssueDetection = {
 
         const sampleName = chip.getAttribute('data-name') || 'sample.jpg';
 
+        // Clear previous state before analyzing new sample
+        this.clearPreviousAiState();
+
         this.currentFile = null;
         this.currentSamplePath = samplePath;
-        this.isConfirmed = false;
 
         this.displayPreview(samplePath, sampleName, 'Municipal Sample Photo');
         this.runAiAnalysis();
@@ -195,33 +230,43 @@ const IssueDetection = {
         throw new Error(result.error || result.details || 'Analysis failed');
       }
 
-      this.latestAiResult = result.data;
-      this.currentImageUrl = result.data.imageUrl;
+      const data = result.data;
+      this.latestAiResult = data;
+      this.currentImageUrl = data.imageUrl;
 
-      // Check if image was identified or unclear
-      if (result.data.isIdentified === false) {
+      // Handle explicit Unable to Identify or uncertain result
+      if (data.isIdentified === false || data.issueType === 'Unable to Identify' || data.issueType === 'Unclear') {
+        if (resultBox) resultBox.style.display = 'none';
         if (unclearBox) {
           unclearBox.style.display = 'block';
           const msgEl = document.getElementById('ai-unclear-text');
-          if (msgEl) msgEl.textContent = result.data.message || 'Unable to identify the issue clearly. Please upload a clearer image.';
-          unclearBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          if (msgEl) {
+            msgEl.textContent = data.message || 'We could not identify the infrastructure issue clearly from this image. Please upload a clearer image or select the issue manually.';
+          }
+          if (typeof unclearBox.scrollIntoView === 'function') {
+            unclearBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
         }
-        App.showToast('Unable to identify the issue clearly. Please upload a clearer image.', 'warning');
+        App.showToast('Issue could not be identified confidently. Please upload a clearer image or select manually.', 'warning');
       } else {
-        // Display AI result in simple language
-        this.renderSimpleResult(result.data);
-        this.autoFillForm(result.data);
-        App.showToast(`Issue Detected: ${result.data.simpleIssue} (${result.data.confidence}% Confidence)`, 'success');
+        // High confidence detection: render simple language result
+        if (unclearBox) unclearBox.style.display = 'none';
+        this.renderSimpleResult(data);
+        this.autoFillForm(data);
+        App.showToast(`Issue Detected: ${data.simpleIssue || data.issueType} (${data.confidence}% Confidence)`, 'success');
       }
 
     } catch (err) {
       console.error('AI Analysis failed:', err);
+      if (resultBox) resultBox.style.display = 'none';
       if (unclearBox) {
         unclearBox.style.display = 'block';
         const msgEl = document.getElementById('ai-unclear-text');
-        if (msgEl) msgEl.textContent = 'Unable to identify the issue clearly. Please upload a clearer image.';
+        if (msgEl) {
+          msgEl.textContent = 'We could not identify the infrastructure issue clearly from this image. Please upload a clearer image or select the issue manually.';
+        }
       }
-      App.showToast('Unable to identify the issue clearly. Please upload a clearer image.', 'error');
+      App.showToast('Issue could not be identified confidently. Please upload a clearer image or select manually.', 'warning');
     } finally {
       if (analyzingBox) analyzingBox.style.display = 'none';
     }
@@ -248,9 +293,9 @@ const IssueDetection = {
     const expEl = document.getElementById('simple-detected-explanation');
 
     if (titleEl) titleEl.textContent = data.simpleIssue || data.issueType;
-    if (confVal) confVal.textContent = `${Math.round(data.confidence || 92)}%`;
-    if (confBadge) confBadge.textContent = `${Math.round(data.confidence || 92)}% Confidence`;
-    if (sevVal) sevVal.textContent = data.severity || 'High';
+    if (confVal) confVal.textContent = `${Math.round(data.confidence || 90)}%`;
+    if (confBadge) confBadge.textContent = `${Math.round(data.confidence || 90)}% Confidence`;
+    if (sevVal) sevVal.textContent = data.severity || 'Medium';
     if (actionVal) actionVal.textContent = data.suggestedAction || 'Road maintenance required';
     if (expEl) expEl.textContent = data.explanation || data.description || 'Public infrastructure defect detected.';
 
@@ -259,12 +304,15 @@ const IssueDetection = {
     if (yesBtn) {
       yesBtn.innerHTML = '✓ YES';
       yesBtn.style.opacity = '1';
+      yesBtn.style.background = '';
     }
 
     const wrapper = document.getElementById('category-selector-wrapper');
     if (wrapper) wrapper.style.display = 'none';
 
-    box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (typeof box.scrollIntoView === 'function') {
+      box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
   },
 
   /**
@@ -283,8 +331,12 @@ const IssueDetection = {
     // Smoothly scroll to Step 2 (Select Location)
     const locSelect = document.getElementById('complaint-location-select');
     if (locSelect) {
-      locSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      locSelect.focus();
+      if (typeof locSelect.scrollIntoView === 'function') {
+        locSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      if (typeof locSelect.focus === 'function') {
+        locSelect.focus();
+      }
     }
   },
 
@@ -297,20 +349,27 @@ const IssueDetection = {
     wrapper.style.display = wrapper.style.display === 'none' ? 'block' : 'none';
   },
 
+  /**
+   * Opens manual category picker when AI cannot identify the image
+   */
   showManualCategoryPick() {
     const box = document.getElementById('ai-simple-result-box');
     const unclearBox = document.getElementById('ai-unclear-box');
     if (unclearBox) unclearBox.style.display = 'none';
     if (box) {
       box.style.display = 'block';
-      this.selectCategory('Pothole');
       const wrapper = document.getElementById('category-selector-wrapper');
-      if (wrapper) wrapper.style.display = 'block';
+      if (wrapper) {
+        wrapper.style.display = 'block';
+        if (typeof wrapper.scrollIntoView === 'function') {
+          wrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }
     }
   },
 
   /**
-   * Citizen selects or corrects an issue category from the 10 available categories
+   * Citizen selects or corrects an issue category from the controlled categories list
    */
   selectCategory(category) {
     const metadata = {
@@ -342,11 +401,15 @@ const IssueDetection = {
     };
 
     this.latestAiResult = updated;
+
+    const unclearBox = document.getElementById('ai-unclear-box');
+    if (unclearBox) unclearBox.style.display = 'none';
+
     this.renderSimpleResult(updated);
     this.autoFillForm(updated);
     this.confirmIssue();
 
-    App.showToast(`Issue changed to: ${category}`, 'info');
+    App.showToast(`Issue selected: ${category}`, 'info');
   },
 
   autoFillForm(data) {
@@ -593,6 +656,16 @@ const IssueDetection = {
         return;
       }
 
+      const issueType = document.getElementById('complaint-issue-type')?.value || '';
+      if (!issueType || issueType === 'Unable to Identify' || issueType === 'Unclear') {
+        App.showToast('Please confirm or manually select the infrastructure issue in Step 1.', 'warning');
+        const aiBox = document.getElementById('ai-simple-result-box');
+        if (aiBox && typeof aiBox.scrollIntoView === 'function') {
+          aiBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        return;
+      }
+
       const locationSelect = document.getElementById('complaint-location-select');
       if (!locationSelect || !locationSelect.value) {
         App.showToast('Please select or detect a location in Step 2.', 'warning');
@@ -605,7 +678,6 @@ const IssueDetection = {
       submitBtn.innerHTML = '<span>⏳</span> Registering Complaint...';
 
       try {
-        const issueType = document.getElementById('complaint-issue-type')?.value || 'Pothole';
         const severity = document.getElementById('complaint-severity')?.value || 'High';
         const department = document.getElementById('complaint-department')?.value || 'Roads & Bridges';
         const recommendedAction = document.getElementById('complaint-suggested-action')?.value || 'Road maintenance required';
@@ -625,7 +697,7 @@ const IssueDetection = {
           imageUrl: this.currentImageUrl || (this.currentSamplePath || '/assets/sample-pothole.jpg'),
           isAiAssisted: true,
           aiConfidence: this.latestAiResult ? this.latestAiResult.confidence : 92.0,
-          aiProvider: 'AI-Assisted Detection'
+          aiProvider: this.latestAiResult?.provider || 'AI-Assisted Detection'
         };
 
         if (this.currentGps) {
@@ -668,8 +740,7 @@ const IssueDetection = {
         this.currentFile = null;
         this.currentSamplePath = null;
         this.currentImageUrl = null;
-        this.latestAiResult = null;
-        this.isConfirmed = false;
+        this.clearPreviousAiState();
 
         setTimeout(() => {
           App.switchTab('my-complaints-tab');

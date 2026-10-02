@@ -19,7 +19,9 @@
   "type": "commonjs",
   "dependencies": {
     "express": "^5.2.1",
-    "multer": "^2.4.0"
+    "jpeg-js": "^0.4.4",
+    "multer": "^2.4.0",
+    "pngjs": "^7.0.0"
   },
   "engines": {
     "node": "22.23.3"

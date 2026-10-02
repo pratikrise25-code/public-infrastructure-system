@@ -39,7 +39,6 @@ const AdminDashboard = {
     }
   },
 
-  async 
   filterComplaints() {
     const searchVal = (document.getElementById('admin-complaints-search')?.value || '').toLowerCase().trim();
     const statusVal = document.getElementById('admin-status-filter')?.value || '';
@@ -121,7 +120,7 @@ const AdminDashboard = {
     }
   },
 
-  loadComplaintsTable() {
+  async loadComplaintsTable() {
     const tbody = document.getElementById('admin-complaints-tbody');
     if (!tbody) return;
 
@@ -404,16 +403,7 @@ const AdminDashboard = {
     } catch (err) {
       App.showToast('Failed to update status', 'error');
     }
-  }
-};
-
-window.AdminDashboard = AdminDashboard;
-document.addEventListener('DOMContentLoaded', () => {
-  if (document.getElementById('admin-complaints-tbody')) {
-    AdminDashboard.init();
-  }
-});
-
+  },
 
   renderComplaintsList(complaints) {
     const tbody = document.getElementById('admin-complaints-tbody');
@@ -509,4 +499,12 @@ document.addEventListener('DOMContentLoaded', () => {
         </tr>
       `;
     }).join('');
-  },
+  }
+};
+
+window.AdminDashboard = AdminDashboard;
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById('admin-complaints-tbody')) {
+    AdminDashboard.init();
+  }
+});

@@ -312,13 +312,6 @@ app.post(['/api/auth/login', '/api/auth/login-officer', '/api/auth/login-coordin
 app.post('/api/ai/analyze-issue', async (req, res) => {
   try {
     const { samplePath } = req.body;
-    if (samplePath && samplePath.includes('unclear')) {
-      return res.json({
-        success: true,
-        isUnclear: true,
-        message: 'Unable to identify the issue clearly. Please upload a clearer image.'
-      });
-    }
     const cleanSample = (samplePath || '').replace(/^\//, '');
     const fullPath = path.join(__dirname, 'public', cleanSample);
     const aiResult = await analyzeInfrastructureImage(fullPath, path.basename(cleanSample) || 'sample.jpg', 'image/jpeg');
