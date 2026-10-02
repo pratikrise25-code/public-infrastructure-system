@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NagarDristi AI - Municipal Infrastructure Portal</title>
-  <meta name="description" content="Municipal public infrastructure monitoring portal. Report potholes, streetlights, leaks, drainage issues and road cracks. AI-assisted defect detection with real GPS mapping and priority tracking.">
+  <title>NagarDristi AI | Public Infrastructure Asset Monitoring & Maintenance</title>
+  <meta name="description" content="NagarDristi AI — Public Infrastructure Asset Monitoring & Maintenance. Citizen reporting, AI defect detection, and maintenance tracking.">
   
   <!-- Modern Clean Typography: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,9 +24,9 @@
   <div class="gov-topbar">
     <div class="gov-flag-badge">
       <div class="gov-flag-stripe"></div>
-      <span>METROPOLITAN MUNICIPAL INFRASTRUCTURE AUTHORITY</span>
+      <span>NAGARDRISTI AI — PUBLIC INFRASTRUCTURE ASSET MONITORING & MAINTENANCE</span>
     </div>
-    <div>NAGARDRISTI AI - PUBLIC SERVICE PORTAL</div>
+    <div>COMMUNITY CIVIC PLATFORM</div>
   </div>
 
   <!-- User Switcher & Session Bar -->
@@ -41,19 +41,25 @@
       </div>
     </div>
 
-    <!-- Account Actions: Citizen vs Municipal Officer -->
+    <!-- Account Actions: Citizen vs NagarDristi AI Coordinator -->
     <div class="user-switch-actions">
+      <button type="button" class="btn-quick-report" onclick="App.switchTab('detection-tab')" title="Quickly file an infrastructure report">
+        ⚡ Quick Report
+      </button>
       <button type="button" class="btn-user-switch" id="btn-switch-citizen" onclick="App.switchUser(4)">
         👤 Citizen Portal
       </button>
       <button type="button" class="btn-user-switch btn-admin-switch" id="btn-switch-admin" onclick="App.openOfficerLoginModal()">
-        🛡️ Municipal Officer Login
+        🛡️ NagarDristi AI Coordinator Login
       </button>
       <button type="button" class="btn-user-switch" id="btn-logout-officer" onclick="App.logoutOfficer()" style="display: none; background: #fef2f2; color: #dc2626; border-color: #fecaca;">
         🚪 Logout (Citizen Mode)
       </button>
       <button type="button" class="btn-user-switch" onclick="App.openRegisterModal()" style="border-style: dashed;">
         📝 Register Citizen
+      </button>
+      <button type="button" class="btn-theme-toggle" id="theme-toggle-btn" onclick="App.toggleTheme()" title="Toggle Dark/Light Mode">
+        ☀️ / 🌙
       </button>
     </div>
   </div>
@@ -68,7 +74,7 @@
             NagarDristi AI
             <span class="brand-title-badge">AI-Assisted</span>
           </h1>
-          <div class="brand-subtitle" id="portal-mode-label">AI-Powered Vision for Better Cities</div>
+          <div class="brand-subtitle" id="portal-mode-label">Public Infrastructure Asset Monitoring & Maintenance</div>
         </div>
       </div>
 
@@ -96,7 +102,7 @@
 
         <!-- Admin Navigation (Visible in Admin Mode) -->
         <button class="citizen-nav-btn admin-only-tab" data-tab="admin-tab" id="nav-admin-btn" role="tab" style="display: none;">
-          <span>📊</span> Admin Dashboard
+          <span>📊</span> Coordinator Dashboard
         </button>
         <button class="citizen-nav-btn admin-only-tab" data-tab="all-complaints-tab" id="nav-all-complaints-btn" role="tab" style="display: none;">
           <span>📋</span> All Complaints
@@ -109,7 +115,7 @@
         </button>
       </nav>
 
-      <div class="system-status-indicator" title="Municipal server active">
+      <div class="system-status-indicator" title="NagarDristi AI system active">
         <span>●</span>
         <span id="ai-engine-status-text">System Active</span>
       </div>
@@ -129,7 +135,7 @@
           <h2 class="hero-title">Report a Public Infrastructure Problem</h2>
           <p class="hero-subtitle">
             Found a pothole, broken streetlight, road crack, water leak, damaged drainage, or broken footpath?
-            Upload a photo to report it directly to municipal maintenance teams. We will track and resolve it.
+            Upload a photo to report it directly to public maintenance teams. We will track and resolve it.
           </p>
 
           <!-- One Prominent Large REPORT AN ISSUE button -->
@@ -139,7 +145,7 @@
         </div>
 
         <!-- Subtle Vertical Scrolling Slogan on Right Side (Requirement 7) -->
-        <div class="gov-slogan-sidebar" title="Municipal Service Slogan">
+        <div class="gov-slogan-sidebar" title="NagarDristi AI Civic Slogan">
           <div class="gov-slogan-track">
             <span class="gov-slogan-text">“See the Problem. Report It. Fix It.”</span>
             <span class="gov-slogan-sep">•</span>
@@ -151,6 +157,15 @@
           </div>
         </div>
       </div>
+
+      <!-- 🇮🇳 Message from the Hosts -->
+      <section class="hosts-message-section">
+        <div class="hosts-message-card">
+          <h3 class="hosts-message-title">🇮🇳 Message from the Hosts</h3>
+          <p class="hosts-message-text">“Your report can help make a difference. NagarDristi AI brings citizens and technology together to identify infrastructure issues, prioritize maintenance, and track their progress.”</p>
+          <div class="hosts-message-author">— Pratik Raj &amp; Meghana, Hosts 🇮🇳</div>
+        </div>
+      </section>
 
       <!-- Quick Status & Activity Bar for the Citizen -->
       <div class="stats-grid" style="margin-bottom: 2rem;">
@@ -183,7 +198,7 @@
           </div>
           <div class="stat-value" id="home-stat-completed">0</div>
           <div class="stat-footer">
-            <span class="stat-meta">Verified repaired by municipal teams</span>
+            <span class="stat-meta">Verified repaired by maintenance teams</span>
           </div>
         </div>
 
@@ -234,7 +249,7 @@
           Report a Public Infrastructure Problem
         </h2>
         <p style="font-size: 0.95rem; color: var(--text-dim);">
-          Complete the simple 4-step form below to alert municipal maintenance crews.
+          Complete the simple 4-step form below to alert public maintenance crews.
         </p>
       </div>
 
@@ -279,6 +294,11 @@
                 <span id="preview-file-size">Ready</span>
               </div>
               <img id="image-preview-element" class="preview-image" src="" alt="Infrastructure photo preview">
+              <div style="margin-top: 8px; display: flex; gap: 8px;">
+                <button type="button" class="btn-retake-photo" id="btn-retake-photo" onclick="IssueDetection.removeOrRetakePhoto()">
+                  🔄 Remove / Retake Photo
+                </button>
+              </div>
             </div>
 
             <!-- Analyzing Image Indicator -->
@@ -391,7 +411,7 @@
                 </select>
               </div>
               <button type="button" class="btn-action-sm" id="btn-use-gps" onclick="IssueDetection.useCurrentLocation()" style="white-space: nowrap; height: 44px; color: var(--primary); font-weight: 700;">
-                📍 Use My GPS Location
+                📍 Use My Current Location
               </button>
               <button type="button" class="btn-action-sm" id="btn-pick-map" onclick="IssueDetection.pickLocationOnMap()" style="white-space: nowrap; height: 44px; font-weight: 700;">
                 🗺️ Pin on Map
@@ -457,7 +477,7 @@
          TAB 2: MY COMPLAINTS (CITIZEN ONLY)
          ========================================================================= -->
     <section class="tab-pane" id="my-complaints-tab" role="tabpanel">
-      <div class="card-header" style="border: none; padding: 0; margin-bottom: 1.5rem;">
+      <div class="card-header" style="border: none; padding: 0; margin-bottom: 1rem;">
         <div>
           <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--civic-dark);">My Reported Complaints</h2>
           <p style="font-size: 0.9rem; color: var(--text-dim);">
@@ -469,6 +489,25 @@
             <span>➕</span> Report New Issue
           </button>
         </div>
+      </div>
+
+      <!-- Search & Filters for My Complaints -->
+      <div class="complaints-filter-bar">
+        <input type="text" class="complaints-search-input" id="my-complaints-search" placeholder="🔍 Search my complaints (ticket, issue, location)..." oninput="App.filterMyComplaints()">
+        <select class="complaints-filter-select" id="my-complaints-status-filter" onchange="App.filterMyComplaints()">
+          <option value="">All Statuses</option>
+          <option value="REPORTED">Reported</option>
+          <option value="ASSIGNED">Assigned</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="COMPLETED">Completed</option>
+        </select>
+        <select class="complaints-filter-select" id="my-complaints-priority-filter" onchange="App.filterMyComplaints()">
+          <option value="">All Priorities</option>
+          <option value="CRITICAL">Critical</option>
+          <option value="HIGH">High</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="LOW">Low</option>
+        </select>
       </div>
 
       <div class="complaints-table-container">
@@ -567,39 +606,72 @@
     <section class="tab-pane" id="admin-tab" role="tabpanel">
       <div class="card-header" style="border: none; padding: 0; margin-bottom: 1.5rem;">
         <div>
-          <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--civic-dark);">Municipal Administrator Dashboard</h2>
-          <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary); margin: 2px 0 4px;">Commissioner: Pratik Raj</div>
+          <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--civic-dark);">NagarDristi AI Coordinator Dashboard</h2>
+          <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary); margin: 2px 0 4px;">NagarDristi AI Coordinator: Pratik Raj</div>
           <p style="font-size: 0.9rem; color: var(--text-dim);">City-wide infrastructure health, defect queues, priority scoring, and crew dispatching.</p>
         </div>
       </div>
 
       <div class="stats-grid" id="admin-summary-grid">
         <div class="stat-card">
-          <div class="stat-header"><span class="stat-title">Active Complaints</span><div class="stat-icon blue"><span>📋</span></div></div>
-          <div class="stat-value" id="admin-stat-active">0</div>
+          <div class="stat-header"><span class="stat-title">Total Complaints</span><div class="stat-icon blue"><span>📋</span></div></div>
+          <div class="stat-value" id="admin-stat-total">0</div>
+          <div class="stat-footer"><span class="stat-meta">All submitted reports</span></div>
         </div>
         <div class="stat-card">
-          <div class="stat-header"><span class="stat-title">Critical Hazards</span><div class="stat-icon orange"><span>⚠️</span></div></div>
-          <div class="stat-value" id="admin-stat-critical">0</div>
+          <div class="stat-header"><span class="stat-title">High Priority</span><div class="stat-icon orange"><span>⚠️</span></div></div>
+          <div class="stat-value" id="admin-stat-high-priority">0</div>
+          <div class="stat-footer"><span class="stat-meta">Critical &amp; High severity</span></div>
         </div>
         <div class="stat-card">
-          <div class="stat-header"><span class="stat-title">AI-Assisted Reports</span><div class="stat-icon green"><span>🤖</span></div></div>
-          <div class="stat-value" id="admin-stat-ai">0</div>
+          <div class="stat-header"><span class="stat-title">In Progress</span><div class="stat-icon amber"><span>⏳</span></div></div>
+          <div class="stat-value" id="admin-stat-in-progress">0</div>
+          <div class="stat-footer"><span class="stat-meta">Under active repair</span></div>
         </div>
         <div class="stat-card">
-          <div class="stat-header"><span class="stat-title">City Health Index</span><div class="stat-icon cyan"><span>🏥</span></div></div>
-          <div class="stat-value" id="admin-stat-health">100%</div>
+          <div class="stat-header"><span class="stat-title">Completed</span><div class="stat-icon green"><span>✅</span></div></div>
+          <div class="stat-value" id="admin-stat-completed">0</div>
+          <div class="stat-footer"><span class="stat-meta">Repaired &amp; verified</span></div>
         </div>
       </div>
     </section>
 
     <!-- Admin All Complaints Pipeline Tab -->
     <section class="tab-pane" id="all-complaints-tab" role="tabpanel">
-      <div class="card-header" style="border: none; padding: 0; margin-bottom: 1.5rem;">
+      <div class="card-header" style="border: none; padding: 0; margin-bottom: 1rem;">
         <div>
-          <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--civic-dark);">All Complaints Pipeline</h2>
-          <p style="font-size: 0.9rem; color: var(--text-dim);">Review, assign maintenance crews, and correct AI-detected issues if required.</p>
+          <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--civic-dark);">Coordinator Complaints Pipeline</h2>
+          <p style="font-size: 0.9rem; color: var(--text-dim);">Review reports, evaluate AI suggestions, assign maintenance teams, and manage duplicate records.</p>
         </div>
+      </div>
+
+      <!-- Filter Toolbar for Coordinator -->
+      <div class="complaints-filter-bar">
+        <input type="text" class="complaints-search-input" id="admin-complaints-search" placeholder="🔍 Search complaints (ticket #, citizen, issue, ward)..." oninput="AdminDashboard.filterComplaints()">
+        <select class="complaints-filter-select" id="admin-status-filter" onchange="AdminDashboard.filterComplaints()">
+          <option value="">All Statuses</option>
+          <option value="REPORTED">Reported</option>
+          <option value="ASSIGNED">Assigned</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="COMPLETED">Completed</option>
+        </select>
+        <select class="complaints-filter-select" id="admin-priority-filter" onchange="AdminDashboard.filterComplaints()">
+          <option value="">All Priorities</option>
+          <option value="CRITICAL">Critical</option>
+          <option value="HIGH">High</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="LOW">Low</option>
+        </select>
+        <select class="complaints-filter-select" id="admin-issue-filter" onchange="AdminDashboard.filterComplaints()">
+          <option value="">All Issue Types</option>
+          <option value="Pothole">Pothole</option>
+          <option value="Road crack">Road Crack</option>
+          <option value="Broken streetlight">Streetlight</option>
+          <option value="Water leakage">Water Leakage</option>
+          <option value="Garbage/waste">Garbage</option>
+          <option value="Damaged drainage">Drainage</option>
+          <option value="Damaged footpath">Footpath</option>
+        </select>
       </div>
 
       <div class="complaints-table-container">
@@ -642,7 +714,7 @@
       <div class="card-header" style="border: none; padding: 0; margin-bottom: 1.5rem;">
         <div>
           <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--civic-dark);">Public Infrastructure Asset Inventory</h2>
-          <p style="font-size: 0.9rem; color: var(--text-dim);">Registered municipal assets, condition ratings, and inspection history.</p>
+          <p style="font-size: 0.9rem; color: var(--text-dim);">Registered infrastructure assets, condition ratings, and inspection history.</p>
         </div>
       </div>
 
@@ -737,7 +809,7 @@
     </div>
   </div>
 
-  <!-- 3. Admin Correct Issue Modal (Requirement 1: Allow administrator to correct detected issue) -->
+  <!-- 3. Coordinator Correct Issue Modal (Allow coordinator to correct detected issue) -->
   <div class="modal-overlay" id="admin-correct-modal">
     <div class="modal-card">
       <div class="modal-header">
@@ -779,7 +851,7 @@
               <option value="Water & Sewerage">Water & Sewerage</option>
               <option value="Public Works & Sanitation">Public Works & Sanitation</option>
               <option value="Traffic & Safety">Traffic & Safety</option>
-              <option value="Municipal Works">Municipal Works</option>
+              <option value="Public Works">Public Works</option>
             </select>
           </div>
           <div class="form-group">
@@ -821,7 +893,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">Performed By</label>
-            <input type="text" id="complete-performed-by" class="form-input" value="Municipal Road Crew 3">
+            <input type="text" id="complete-performed-by" class="form-input" value="Road Maintenance Crew 3">
           </div>
           <div class="form-group">
             <label class="form-label">Cost Estimate (₹ INR)</label>
@@ -837,20 +909,20 @@
   </div>
 
   
-  <!-- Municipal Officer Login Modal (Requirement 9) -->
+  <!-- NagarDristi AI Coordinator Login Modal -->
   <div class="modal-overlay" id="officer-login-modal">
     <div class="modal-card">
       <div class="modal-header">
-        <h3 class="modal-title">🛡️ Municipal Officer Login</h3>
+        <h3 class="modal-title">🛡️ NagarDristi AI Coordinator Login</h3>
         <button type="button" class="modal-close" onclick="App.closeModals()">✕</button>
       </div>
       <form onsubmit="App.handleOfficerLoginSubmit(event)">
         <div class="modal-body">
           <div style="background: var(--bg-subtle); border-left: 3px solid var(--primary); padding: 10px 14px; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
-            Restricted municipal administrator console. Authorized municipal personnel only.
+            Restricted NagarDristi AI Coordinator console. Authorized coordinators only.
           </div>
           <div class="form-group">
-            <label class="form-label">Official Email Address *</label>
+            <label class="form-label">Coordinator Email Address *</label>
             <input type="email" id="officer-login-email" class="form-input" value="pratikr.ise25@cmrit.ac.in" required>
           </div>
           <div class="form-group">
@@ -860,7 +932,47 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn-action-sm" onclick="App.closeModals()">Cancel</button>
-          <button type="submit" class="action-btn-primary">Sign In as Officer</button>
+          <button type="submit" class="action-btn-primary">Sign In as Coordinator</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  
+  <!-- 5. Forward to Government Portal Modal (Coordinator Assisted) -->
+  <div class="modal-overlay" id="govt-forward-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">🏛️ Forward to Government Portal (Sahaaya 2.0)</h3>
+        <button type="button" class="modal-close" onclick="App.closeModals()">✕</button>
+      </div>
+      <form onsubmit="AdminDashboard.handleGovtForwardSubmit(event)">
+        <input type="hidden" id="govt-complaint-id">
+        <div class="modal-body">
+          <div style="background: var(--bg-subtle); border-left: 3px solid #2563eb; padding: 10px 14px; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+            <strong>Coordinator-Assisted Integration:</strong> Open the official government grievance portal, submit the citizen complaint details, and record the official reference number below.
+          </div>
+          <div style="margin-bottom: 1rem;">
+            <a href="https://bbmp.sahaaya.in" target="_blank" rel="noopener noreferrer" class="btn-action-sm" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-weight: 700;">
+              🔗 Open Official BBMP Sahaaya 2.0 Portal ↗
+            </a>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Government Portal / Department</label>
+            <input type="text" id="govt-portal-name" class="form-input" value="BBMP Sahaaya 2.0 (Public Grievance Redressal)">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Official Government Reference / Ticket ID *</label>
+            <input type="text" id="govt-reference-id" class="form-input" placeholder="e.g. SAHAAYA-2026-88129" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Submission Notes (Optional)</label>
+            <textarea id="govt-notes" class="form-textarea" rows="2" placeholder="e.g. Registered in ward 12 road maintenance section."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-action-sm" onclick="App.closeModals()">Cancel</button>
+          <button type="submit" class="action-btn-primary">Link Government Reference</button>
         </div>
       </form>
     </div>
@@ -870,16 +982,20 @@
   <div class="modal-overlay" id="contact-modal">
     <div class="modal-card">
       <div class="modal-header">
-        <h3 class="modal-title">📞 Municipal Contact Directory</h3>
+        <h3 class="modal-title">📞 NagarDristi AI Contact Directory</h3>
         <button type="button" class="modal-close" onclick="App.closeModals()">✕</button>
       </div>
-      <div class="modal-body" style="font-size: 0.92rem; line-height: 1.7; color: var(--text-main);">
-        <p><strong>Metropolitan Municipal Infrastructure Authority</strong></p>
-        <p><strong>Commissioner: Pratik Raj</strong></p>
-        <p><strong>Citizen Grievance Helpline:</strong> 1800-425-0012 (Toll Free)</p>
-        <p><strong>Official Email:</strong> pratikr.ise25@cmrit.ac.in</p>
-        <p><strong>Headquarters:</strong> Civic Directorate Center, MG Road Arterial Corridor</p>
-        <p><strong>Working Hours:</strong> Monday – Saturday, 9:00 AM – 6:00 PM</p>
+      <div class="modal-body" style="font-size: 0.95rem; line-height: 1.8; color: var(--text-main);">
+        <div style="margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+          <div style="font-size: 1.15rem; font-weight: 800; color: var(--civic-dark);">NagarDristi AI</div>
+          <div style="font-size: 0.85rem; color: var(--text-dim); font-weight: 500;">Public Infrastructure Asset Monitoring &amp; Maintenance</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div><strong>Hosts:</strong> <span>Pratik Raj &amp; Meghana</span></div>
+          <div><strong>Email for Queries:</strong> <a href="mailto:pratikr.ise25@cmrit.ac.in" style="color: var(--primary); font-weight: 600; text-decoration: underline;">pratikr.ise25@cmrit.ac.in</a></div>
+          <div><strong>Headquarters:</strong> <span>CMR Institute of Technology, AECS Layout, Brookefield, Bengaluru</span></div>
+          <div><strong>Working Hours:</strong> <span style="color: var(--success); font-weight: 700;">Open 24/7</span></div>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn-action-sm" onclick="App.closeModals()">Close</button>
@@ -893,7 +1009,7 @@
   <!-- Footer (Requirement 14: Simple official-looking footer) -->
   <footer class="gov-official-footer">
     <div class="gov-footer-content">
-      <div class="gov-footer-title">Public Infrastructure Monitoring System</div>
+      <div class="gov-footer-title">NagarDristi AI — Public Infrastructure Asset Monitoring &amp; Maintenance</div>
       <div class="gov-footer-links">
         <span style="font-weight: 600; color: #cbd5e1; margin-right: 4px;">Useful links:</span>
         <a href="javascript:void(0)" onclick="App.switchTab('home-tab')">Home</a>
@@ -907,7 +1023,7 @@
         <a href="javascript:void(0)" onclick="App.openContactModal()">Contact</a>
       </div>
       <div class="gov-footer-copy">
-        © Public Infrastructure Monitoring System. All rights reserved.
+        © NagarDristi AI. All rights reserved.
       </div>
     </div>
   </footer>

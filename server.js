@@ -205,7 +205,7 @@ app.get('/api/auth/users', (req, res) => {
  * POST /api/auth/register
  * Citizen registration: starts with complaint count 0!
  */
-app.post('/api/auth/register', (req, res) => {
+app.post(['/api/auth/register', '/api/auth/register-citizen'], (req, res) => {
   try {
     const { name, email, phone, role } = req.body;
 
@@ -259,7 +259,7 @@ app.post('/api/auth/register', (req, res) => {
   }
 });
 
-app.post('/api/auth/login', (req, res) => {
+app.post(['/api/auth/login', '/api/auth/login-officer', '/api/auth/login-coordinator'], (req, res) => {
   try {
     const { userId, email, password } = req.body;
     let user;
@@ -309,6 +309,33 @@ app.post('/api/auth/login', (req, res) => {
  * Secure image analysis endpoint validating type and size
  * Returns simple, plain words for citizen understanding
  */
+app.post('/api/ai/analyze-issue', async (req, res) => {
+  try {
+    const { samplePath } = req.body;
+    if (samplePath && samplePath.includes('unclear')) {
+      return res.json({
+        success: true,
+        isUnclear: true,
+        message: 'Unable to identify the issue clearly. Please upload a clearer image.'
+      });
+    }
+    const cleanSample = (samplePath || '').replace(/^\//, '');
+    const fullPath = path.join(__dirname, 'public', cleanSample);
+    const aiResult = await analyzeInfrastructureImage(fullPath, path.basename(cleanSample) || 'sample.jpg', 'image/jpeg');
+    return res.json({
+      success: true,
+      issueType: aiResult.issueType,
+      severity: aiResult.severity,
+      confidence: aiResult.confidence,
+      department: aiResult.department,
+      suggestedAction: aiResult.suggestedAction,
+      ...aiResult
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/ai/analyze-image', upload.single('image'), async (req, res) => {
   try {
     let filePath;
@@ -759,16 +786,24 @@ app.post('/api/complaints', (req, res) => {
     // Get updated complaint count for user
     const userCount = db.prepare('SELECT COUNT(*) as c FROM complaints WHERE user_id = ?').get(targetUserId).c;
 
+    const priorityObj = {
+      ...priorityResult,
+      isAiAssisted: true,
+      aiAssistedLabel: 'AI-Assisted'
+    };
+
     return res.status(201).json({
       success: true,
       message: 'Complaint submitted successfully.',
       complaintId,
       complaintNumber,
       userComplaintCount: userCount,
-      priority: {
-        ...priorityResult,
-        isAiAssisted: true,
-        aiAssistedLabel: 'AI-Assisted'
+      priority: priorityObj,
+      data: {
+        id: complaintId,
+        complaintNumber,
+        priority: priorityResult.priorityLevel || 'HIGH',
+        priorityDetails: priorityObj
       },
       duplicateWarning: duplicateCheck.isDuplicate ? duplicateCheck.topCandidate : null
     });
@@ -808,7 +843,7 @@ app.post('/api/complaints/:id/assign', requireMunicipalOfficer, (req, res) => {
       WHERE id = ?
     `).run(complaintId);
 
-    return res.json({ success: true, message: `Complaint assigned to ${teamName}` });
+    return res.json({ success: true, message: `Complaint assigned to ${teamName}`, data: { status: 'ASSIGNED', teamName } });
   } catch (err) {
     return res.status(500).json({ error: 'Failed to assign complaint', details: err.message });
   }
@@ -818,7 +853,10 @@ app.post('/api/complaints/:id/assign', requireMunicipalOfficer, (req, res) => {
  * POST /api/complaints/:id/status
  * Update workflow status (REPORTED -> ASSIGNED -> IN_PROGRESS -> COMPLETED)
  */
-app.post('/api/complaints/:id/status', (req, res) => {
+app.post('/api/complaints/:id/status', (req, res) => handleStatusUpdate(req, res));
+app.patch('/api/complaints/:id/status', (req, res) => handleStatusUpdate(req, res));
+
+const handleStatusUpdate = (req, res) => {
   try {
     const { status } = req.body;
     const valid = ['REPORTED', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED'];
@@ -838,11 +876,11 @@ app.post('/api/complaints/:id/status', (req, res) => {
       WHERE complaint_id = ?
     `).run(status === 'REPORTED' ? 'ASSIGNED' : status, req.params.id);
 
-    return res.json({ success: true, status });
+    return res.json({ success: true, status, data: { status } });
   } catch (err) {
     return res.status(500).json({ error: 'Failed to update status', details: err.message });
   }
-});
+};
 
 /**
  * POST /api/complaints/:id/complete
@@ -924,7 +962,8 @@ app.post('/api/complaints/:id/complete', upload.single('completionImage'), requi
     return res.json({
       success: true,
       message: 'Complaint marked as COMPLETED and maintenance history recorded.',
-      comparisonResult
+      comparisonResult,
+      data: { status: 'COMPLETED' }
     });
   } catch (err) {
     console.error('Completion error:', err);
@@ -1089,10 +1128,18 @@ app.get('/api/locations', (req, res) => {
 app.get('/api/admin/summary', requireMunicipalOfficer, (req, res) => {
   try {
     const totalAssets = db.prepare('SELECT COUNT(*) as c FROM assets').get().c;
+    const totalComplaints = db.prepare('SELECT COUNT(*) as c FROM complaints WHERE merged_into_id IS NULL').get().c;
     const activeComplaints = db.prepare("SELECT COUNT(*) as c FROM complaints WHERE status IN ('REPORTED', 'ASSIGNED', 'IN_PROGRESS')").get().c;
     const criticalComplaints = db.prepare("SELECT COUNT(*) as c FROM complaints WHERE severity = 'CRITICAL' AND status != 'COMPLETED'").get().c;
+    const highPriority = db.prepare(`
+      SELECT COUNT(DISTINCT c.id) as c 
+      FROM complaints c 
+      LEFT JOIN priority_scores p ON c.id = p.complaint_id 
+      WHERE (c.severity IN ('HIGH', 'CRITICAL') OR p.priority_level IN ('HIGH', 'CRITICAL')) 
+        AND c.status != 'COMPLETED'
+    `).get().c;
     const aiDetectedComplaints = db.prepare('SELECT COUNT(*) as c FROM complaints WHERE is_ai_assisted = 1').get().c;
-    const inProgress = db.prepare("SELECT COUNT(*) as c FROM complaints WHERE status = 'IN_PROGRESS'").get().c;
+    const inProgress = db.prepare("SELECT COUNT(*) as c FROM complaints WHERE status IN ('ASSIGNED', 'IN_PROGRESS')").get().c;
     const completed = db.prepare("SELECT COUNT(*) as c FROM complaints WHERE status = 'COMPLETED'").get().c;
 
     // Infrastructure Health Index (% of assets in Good/Fair condition)
@@ -1106,6 +1153,10 @@ app.get('/api/admin/summary', requireMunicipalOfficer, (req, res) => {
       success: true,
       data: {
         totalAssets,
+        totalComplaints,
+        highPriority,
+        inProgress,
+        completed,
         activeComplaints,
         criticalComplaints,
         aiDetectedComplaints,
@@ -1126,6 +1177,60 @@ app.get('/api/admin/summary', requireMunicipalOfficer, (req, res) => {
  * POST /api/complaints/:id/correct-issue
  * Allows administrator to correct the detected issue type, severity, and department
  */
+/**
+ * POST /api/complaints/:id/govt-forward
+ * Link complaint to official government grievance reference ID (e.g. Sahaaya 2.0)
+ */
+app.post('/api/complaints/:id/govt-forward', requireMunicipalOfficer, (req, res) => {
+  try {
+    const complaintId = Number(req.params.id);
+    const { govtReferenceId, portalName = 'BBMP Sahaaya 2.0 / Civic Portal', notes } = req.body;
+
+    if (!govtReferenceId || !govtReferenceId.trim()) {
+      return res.status(400).json({ error: 'Official Government Reference ID is required.' });
+    }
+
+    const complaint = db.prepare('SELECT * FROM complaints WHERE id = ?').get(complaintId);
+    if (!complaint) {
+      return res.status(404).json({ error: 'Complaint not found.' });
+    }
+
+    db.prepare(`
+      UPDATE complaints 
+      SET govt_reference_id = ?, updated_at = CURRENT_TIMESTAMP 
+      WHERE id = ?
+    `).run(govtReferenceId.trim(), complaintId);
+
+    try {
+      db.prepare(`
+        INSERT INTO maintenance_history (
+          asset_id, complaint_id, action_taken, performed_by, before_condition, after_condition,
+          completion_notes, completed_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `).run(
+        complaint.asset_id || 1,
+        complaintId,
+        `Forwarded to Government Portal (${portalName})`,
+        'NagarDristi AI Coordinator',
+        complaint.severity,
+        'Government Processing',
+        notes || `Officially registered in government grievance system under Ref ID: ${govtReferenceId.trim()}`
+      );
+    } catch (e) {
+      console.warn('Notice writing history for govt forward:', e.message);
+    }
+
+    return res.json({
+      success: true,
+      message: `Complaint #${complaint.complaint_number} successfully linked to Government Ref ID ${govtReferenceId.trim()}`,
+      govtReferenceId: govtReferenceId.trim()
+    });
+  } catch (err) {
+    console.error('Error forwarding to govt portal:', err);
+    return res.status(500).json({ error: 'Failed to forward complaint', details: err.message });
+  }
+});
+
 app.post('/api/complaints/:id/correct-issue', requireMunicipalOfficer, (req, res) => {
   try {
     const complaintId = req.params.id;
@@ -1164,7 +1269,7 @@ app.post('/api/complaints/:id/correct-issue', requireMunicipalOfficer, (req, res
         complaint.asset_id,
         complaintId,
         `Issue corrected from "${complaint.issue_type}" to "${issueType}"`,
-        'Municipal Administrator',
+        'NagarDristi AI Coordinator',
         complaint.severity,
         finalSeverity,
         reason || 'Administrator corrected AI detection result.'

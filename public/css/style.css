@@ -1244,3 +1244,354 @@ body {
   width: 100%;
 }
 
+
+
+/* ==========================================================================
+   NagarDristi AI — Enhanced Civic Styles, Dark Mode & Coordinator UI
+   ========================================================================== */
+
+/* 1. Dark Mode System */
+body.dark-mode {
+  --bg-body: #0b1320;
+  --bg-surface: #131f33;
+  --bg-subtle: #1a283f;
+  --bg-input: #1a283f;
+  --border-color: #263852;
+  --border-subtle: #334460;
+  --border-focus: #38bdf8;
+  
+  --text-main: #f8fafc;
+  --text-muted: #cbd5e1;
+  --text-dim: #94a3b8;
+  
+  --civic-dark: #070d18;
+  --primary: #2563eb;
+  --primary-hover: #3b82f6;
+  --primary-active: #1d4ed8;
+  --primary-light: #1e293b;
+  
+  --success-bg: rgba(22, 163, 74, 0.18);
+  --success-border: rgba(22, 163, 74, 0.4);
+  --warning-bg: rgba(217, 119, 6, 0.18);
+  --warning-border: rgba(217, 119, 6, 0.4);
+  --danger-bg: rgba(220, 38, 38, 0.18);
+  --danger-border: rgba(220, 38, 38, 0.4);
+  
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.6);
+}
+
+body.dark-mode .card,
+body.dark-mode .simple-form-card,
+body.dark-mode .stat-card,
+body.dark-mode .citizen-hero-card,
+body.dark-mode .complaint-citizen-card,
+body.dark-mode .hosts-message-card {
+  background: var(--bg-surface);
+  border-color: var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+body.dark-mode .gov-hero-wrapper {
+  background: linear-gradient(135deg, #070d18 0%, #131f33 100%);
+}
+
+body.dark-mode .header-main {
+  background: var(--bg-surface);
+  border-bottom-color: var(--border-color);
+}
+
+body.dark-mode .citizen-nav-btn {
+  color: var(--text-dim);
+}
+
+body.dark-mode .citizen-nav-btn:hover {
+  color: var(--text-main);
+  background: var(--bg-subtle);
+}
+
+body.dark-mode .citizen-nav-btn.active {
+  color: #38bdf8;
+  border-bottom-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.08);
+}
+
+body.dark-mode .user-switch-bar {
+  background: #070d18;
+  border-bottom-color: var(--border-color);
+}
+
+body.dark-mode .form-input,
+body.dark-mode .form-select,
+body.dark-mode .form-textarea {
+  background: var(--bg-input);
+  color: var(--text-main);
+  border-color: var(--border-color);
+}
+
+body.dark-mode .form-input:focus,
+body.dark-mode .form-select:focus,
+body.dark-mode .form-textarea:focus {
+  border-color: var(--border-focus);
+}
+
+body.dark-mode .complaints-table th {
+  background: #1a283f;
+  color: var(--text-muted);
+  border-bottom-color: var(--border-color);
+}
+
+body.dark-mode .complaints-table td {
+  border-bottom-color: var(--border-color);
+  color: var(--text-main);
+}
+
+body.dark-mode .complaints-table tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+body.dark-mode .modal-card {
+  background: var(--bg-surface);
+  border-color: var(--border-color);
+  box-shadow: var(--shadow-lg);
+}
+
+body.dark-mode .modal-header {
+  border-bottom-color: var(--border-color);
+}
+
+body.dark-mode .modal-footer {
+  border-top-color: var(--border-color);
+}
+
+body.dark-mode .upload-zone {
+  background: var(--bg-subtle);
+  border-color: var(--border-color);
+}
+
+body.dark-mode .upload-zone:hover {
+  background: rgba(56, 189, 248, 0.06);
+  border-color: #38bdf8;
+}
+
+body.dark-mode .ai-detection-simple-box,
+body.dark-mode .ai-simple-result-box {
+  background: rgba(30, 41, 59, 0.7);
+  border-color: #334155;
+}
+
+body.dark-mode .leaflet-tile {
+  filter: brightness(0.85) contrast(1.1) invert(0.9) hue-rotate(180deg);
+}
+
+/* 2. Theme Toggle Button */
+.btn-theme-toggle {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #f8fafc;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--transition-normal);
+}
+
+.btn-theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: #f97316;
+}
+
+/* 3. Hosts Message Section */
+.hosts-message-section {
+  max-width: 1200px;
+  margin: 1.5rem auto;
+  padding: 0 1rem;
+}
+
+.hosts-message-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-left: 5px solid #ea580c;
+  border-radius: var(--radius-md);
+  padding: 1.5rem 2rem;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.hosts-message-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--civic-dark);
+  margin-bottom: 0.65rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+body.dark-mode .hosts-message-title {
+  color: #38bdf8;
+}
+
+.hosts-message-text {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--text-main);
+  font-style: italic;
+  margin-bottom: 0.75rem;
+}
+
+.hosts-message-author {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #ea580c;
+  letter-spacing: 0.02em;
+}
+
+/* 4. Quick Report Button */
+.btn-quick-report {
+  background: #ea580c;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-weight: 800;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background var(--transition-normal);
+}
+
+.btn-quick-report:hover {
+  background: #c2410c;
+}
+
+/* 5. Photo Preview & Retake Button */
+.btn-retake-photo {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-retake-photo:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger-border);
+}
+
+/* 6. Complaint Filter & Search Toolbar */
+.complaints-filter-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 1rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+}
+
+.complaints-search-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  background: var(--bg-input);
+  color: var(--text-main);
+}
+
+.complaints-filter-select {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  background: var(--bg-input);
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+/* 7. AI Summary Box in Coordinator Dashboard */
+.ai-summary-box {
+  background: rgba(30, 58, 138, 0.08);
+  border: 1px solid rgba(30, 58, 138, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin-top: 8px;
+}
+
+body.dark-mode .ai-summary-box {
+  background: rgba(56, 189, 248, 0.08);
+  border-color: rgba(56, 189, 248, 0.25);
+}
+
+.ai-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.ai-summary-text {
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--text-main);
+  font-style: italic;
+}
+
+/* 8. Duplicate Complaint Warning Badge */
+.badge-duplicate {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+body.dark-mode .badge-duplicate {
+  background: rgba(217, 119, 6, 0.2);
+  color: #fde68a;
+  border-color: rgba(217, 119, 6, 0.4);
+}
+
+/* 9. Government Reference ID Badge */
+.badge-govt-ref {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+body.dark-mode .badge-govt-ref {
+  background: rgba(37, 99, 235, 0.2);
+  color: #93c5fd;
+  border-color: rgba(37, 99, 235, 0.4);
+}

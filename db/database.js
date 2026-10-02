@@ -215,11 +215,14 @@ function initSchema() {
   `);
 }
 
-// Initialize tables
+// Initialize tables & safe migrations
 try {
-    db.exec('ALTER TABLE users ADD COLUMN password_hash TEXT;');
-  } catch (e) {}
-  initSchema();
+  db.exec('ALTER TABLE users ADD COLUMN password_hash TEXT;');
+} catch (e) {}
+try {
+  db.exec('ALTER TABLE complaints ADD COLUMN govt_reference_id TEXT;');
+} catch (e) {}
+initSchema();
 
 module.exports = {
   db,

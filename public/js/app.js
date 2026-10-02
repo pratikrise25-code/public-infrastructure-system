@@ -17,6 +17,7 @@ const App = {
   locations: [],
 
   init() {
+    this.initTheme();
     this.setupTabs();
     this.setupModals();
     this.loadMetadata();
@@ -39,6 +40,22 @@ const App = {
     } else {
       this.switchUser(4);
     }
+  },
+
+  
+  initTheme() {
+    const saved = localStorage.getItem('nagardristi_theme');
+    if (saved === 'dark' || (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+  },
+
+  toggleTheme() {
+    const isDark = document.body.classList.toggle('dark-mode');
+    localStorage.setItem('nagardristi_theme', isDark ? 'dark' : 'light');
+    this.showToast(isDark ? '🌙 Dark Mode Activated' : '☀️ Light Mode Activated', 'info');
   },
 
   getAuthHeaders() {
@@ -75,12 +92,12 @@ const App = {
 
       const json = await res.json();
       if (!res.ok || !json.success) {
-        throw new Error(json.error || 'Invalid Municipal Officer credentials.');
+        throw new Error(json.error || 'Invalid NagarDristi AI Coordinator credentials.');
       }
 
       this.closeModals();
       this.setCurrentUser(json.user);
-      this.showToast('Authentication Successful! Welcome, Commissioner: Pratik Raj.', 'success');
+      this.showToast('Authentication Successful! Welcome, Coordinator Pratik Raj.', 'success');
       this.switchTab('admin-tab');
     } catch (err) {
       this.showToast(err.message, 'error');
@@ -89,7 +106,7 @@ const App = {
 
   logoutOfficer() {
     this.switchUser(4);
-    this.showToast('Logged out from Municipal Officer portal. Returned to Citizen mode.', 'info');
+    this.showToast('Logged out from NagarDristi AI Coordinator portal. Returned to Citizen mode.', 'info');
     this.switchTab('home-tab');
   },
 
@@ -128,6 +145,12 @@ const App = {
       modal.classList.remove('open');
       modal.style.display = 'none';
     });
+  },
+
+  removeOrRetakePhoto() {
+    if (window.IssueDetection && window.IssueDetection.removeOrRetakePhoto) {
+      window.IssueDetection.removeOrRetakePhoto();
+    }
   },
 
   openRegisterModal() {
@@ -231,7 +254,7 @@ const App = {
     if (profEmail) profEmail.textContent = user.email || 'None';
     if (profPhone) profPhone.textContent = user.phone || 'None';
     if (profCount) profCount.textContent = user.complaintCount;
-    if (profRole) profRole.textContent = user.role === 'admin' ? 'Municipal Administrator' : 'Registered Public Citizen';
+    if (profRole) profRole.textContent = user.role === 'admin' ? 'NagarDristi AI Coordinator' : 'Registered Public Citizen';
 
     // Update map counter badge
     const mapCountBadge = document.getElementById('my-map-reports-count');
@@ -261,7 +284,7 @@ const App = {
     const portalLabel = document.getElementById('portal-mode-label');
     if (portalLabel) {
       portalLabel.textContent = isAdmin 
-        ? 'Municipal Administrator Command Console' 
+        ? 'NagarDristi AI Coordinator Panel' 
         : 'Citizen Complaint & Infrastructure Portal';
     }
 
@@ -348,7 +371,28 @@ const App = {
     });
   },
 
-  async loadMyComplaints() {
+  async 
+  filterMyComplaints() {
+    const searchVal = (document.getElementById('my-complaints-search')?.value || '').toLowerCase().trim();
+    const statusVal = document.getElementById('my-complaints-status-filter')?.value || '';
+    const priorityVal = document.getElementById('my-complaints-priority-filter')?.value || '';
+
+    const rows = document.querySelectorAll('#my-complaints-tbody tr');
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      const matchesSearch = !searchVal || text.includes(searchVal);
+      const matchesStatus = !statusVal || text.includes(statusVal.toLowerCase().replace('_', ' '));
+      const matchesPriority = !priorityVal || text.includes(priorityVal.toLowerCase());
+
+      if (matchesSearch && matchesStatus && matchesPriority) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  },
+
+  loadMyComplaints() {
     const tbody = document.getElementById('my-complaints-tbody');
     const container = document.getElementById('my-complaints-list');
     const userHeaderName = document.getElementById('my-complaints-user-name');

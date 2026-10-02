@@ -69,6 +69,33 @@ const IssueDetection = {
     });
   },
 
+  
+  removeOrRetakePhoto() {
+    this.currentFile = null;
+    this.currentSamplePath = null;
+    this.currentImageUrl = null;
+    this.latestAiResult = null;
+    this.isConfirmed = false;
+
+    const preview = document.getElementById('image-preview-container');
+    if (preview) preview.style.display = 'none';
+    const previewImg = document.getElementById('image-preview-element');
+    if (previewImg) previewImg.src = '';
+
+    const aiBox = document.getElementById('ai-simple-result-box');
+    if (aiBox) aiBox.style.display = 'none';
+    const unclearBox = document.getElementById('ai-unclear-box');
+    if (unclearBox) unclearBox.style.display = 'none';
+    const analyzingBox = document.getElementById('ai-analyzing-box');
+    if (analyzingBox) analyzingBox.style.display = 'none';
+
+    const fileInput = document.getElementById('file-upload-input');
+    if (fileInput) {
+      fileInput.value = '';
+      fileInput.click();
+    }
+  },
+
   handleFileSelected(file) {
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!validTypes.includes(file.type.toLowerCase())) {
